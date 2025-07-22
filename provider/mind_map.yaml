@@ -1,0 +1,16 @@
+identity:
+  author: "sawyer-shi"
+  name: "mind_map"
+  label:
+    en_US: "Mind Map Generator"
+    zh_Hans: "脑图"
+  description:
+    en_US: "Convert your markdown text into mind-map image output with two layout options"
+    zh_Hans: "将Markdown文本转换为脑图图片，支持两种布局选择"
+  icon: "icon.png"
+tools:
+  - tools/mind_map_center.yaml
+  - tools/mind_map_horizontal.yaml
+extra:
+  python:
+    source: provider/mind_map.py

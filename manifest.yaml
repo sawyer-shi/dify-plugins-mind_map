@@ -1,0 +1,26 @@
+version: 1.0.0
+type: plugin
+author: sawyer-shi
+name: mind_map
+label:
+  en_US: Mind Map Generator
+  zh_Hans: 脑图
+description:
+  en_US: Generate beautiful mind maps from Markdown text with center and horizontal layouts
+  zh_Hans: 将Markdown文本转换为精美的脑图，支持中心结构和左右结构两种布局
+icon: icon.png
+resource:
+  memory: 268435456
+plugins:
+  tools:
+    - provider/mind_map.yaml
+meta:
+  version: 1.0.0
+  author: sawyer-shi
+  arch:
+    - amd64
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+created_at: "2025-07-21T20:15:00.0000000+08:00"

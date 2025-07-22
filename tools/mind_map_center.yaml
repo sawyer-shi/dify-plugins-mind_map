@@ -1,0 +1,37 @@
+identity:
+  name: mind_map_center
+  author: sawyer-shi
+  label:
+    en_US: Mind Map (Center Layout)
+    zh_Hans: 脑图(中心结构)
+description:
+  human:
+    en_US: Generate beautiful mind maps with center (radial) layout from Markdown text
+    zh_Hans: 将Markdown文本转换为精美的中心结构（放射状）脑图
+  llm: A powerful tool that converts Markdown text into beautiful PNG mind maps with center (radial) layout
+parameters:
+  - name: markdown_content
+    type: string
+    required: true
+    label:
+      en_US: Markdown Content
+      zh_Hans: Markdown内容
+    human_description:
+      en_US: The Markdown text content to convert into a mind map
+      zh_Hans: 要转换为脑图的Markdown文本内容
+    llm_description: Markdown formatted text that will be parsed and converted into a center layout mind map
+    form: llm
+  - name: filename
+    type: string
+    required: false
+    label:
+      en_US: Filename
+      zh_Hans: 文件名
+    human_description:
+      en_US: Optional filename for the output PNG file (without extension)
+      zh_Hans: PNG输出文件的文件名（可选，无需扩展名）
+    llm_description: Optional filename for the generated PNG mind map. If not provided, a timestamp will be used
+    form: llm
+extra:
+  python:
+    source: tools/mind_map_center.py 
