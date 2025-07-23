@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Horizontal Layout Mind Map Tool
-Generates left-to-right mind maps from Markdown text with enhanced Chinese font support
+Generates left-to-right mind maps from Markdown text with PIL-based Chinese font support
 Supports unlimited dynamic hierarchical structures
 """
 
@@ -11,6 +11,7 @@ import re
 import tempfile
 import time
 import math
+import shutil
 from typing import Any, Dict, Generator, List
 
 from dify_plugin import Tool
@@ -19,127 +20,56 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 
 class MindMapHorizontalTool(Tool):
     
-    def _setup_chinese_fonts(self):
+    def _setup_pil_chinese_font(self, temp_dir):
         """
-        更强力的中文字体设置，使用最直接的系统字体路径
+        使用PIL/Pillow进行中文字体处理的解决方案
         """
-        import matplotlib
-        matplotlib.use('Agg')  # 必须在其他导入之前设置
-        
-        import matplotlib.pyplot as plt
-        import matplotlib.font_manager as fm
-        
-        # 最强力的UTF-8环境设置
-        import sys
-        import locale
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+        except ImportError:
+            print("PIL/Pillow not available, using fallback")
+            return None
+            
         import platform
         
-        # 多重环境变量设置
-        utf8_vars = {
-            'LANG': 'zh_CN.UTF-8',
-            'LC_ALL': 'zh_CN.UTF-8', 
-            'PYTHONIOENCODING': 'utf-8',
-            'PYTHONUTF8': '1',
-        }
-        
-        for key, value in utf8_vars.items():
-            os.environ[key] = value
-        
-        # 强制设置Python内部编码
-        if hasattr(sys, 'setdefaultencoding'):
-            sys.setdefaultencoding('utf-8')
-        
-        # 获取系统平台
         system = platform.system()
+        print(f"System: {system}")
         
-        # 清理所有字体缓存
-        try:
-            import shutil
-            # 清除matplotlib缓存
-            cache_dir = matplotlib.get_cachedir()
-            if os.path.exists(cache_dir):
-                shutil.rmtree(cache_dir, ignore_errors=True)
-            # 重建字体管理器
-            matplotlib.font_manager._rebuild()
-        except Exception as e:
-            print(f"Font cache cleanup: {e}")
-        
-        # 直接使用系统字体文件路径
-        font_found = None
+        # 查找中文字体文件
+        font_file = None
         
         if system == 'Windows':
-            # Windows系统字体的绝对路径
-            windows_fonts = [
+            font_paths = [
                 r'C:\Windows\Fonts\msyh.ttc',      # 微软雅黑
-                r'C:\Windows\Fonts\msyhbd.ttc',    # 微软雅黑粗体
                 r'C:\Windows\Fonts\simhei.ttf',    # 黑体
                 r'C:\Windows\Fonts\simsun.ttc',    # 宋体
-                r'C:\Windows\Fonts\simkai.ttf',    # 楷体
-                r'C:\Windows\Fonts\simfang.ttf',   # 仿宋
             ]
             
-            for font_path in windows_fonts:
+            for font_path in font_paths:
                 if os.path.exists(font_path):
-                    try:
-                        # 直接加载字体文件
-                        prop = fm.FontProperties(fname=font_path)
-                        # 测试字体
-                        fig, ax = plt.subplots(figsize=(1, 1))
-                        ax.text(0.5, 0.5, '测试中文', fontproperties=prop)
-                        plt.close(fig)
-                        font_found = prop
-                        print(f"✅ 成功加载中文字体: {font_path}")
-                        break
-                    except Exception as e:
-                        print(f"字体加载失败: {font_path}, {e}")
-                        continue
-                        
+                    font_file = font_path
+                    print(f"Found Chinese font: {font_path}")
+                    break
         elif system == 'Darwin':  # macOS
-            macos_fonts = [
-                '/Library/Fonts/Arial Unicode.ttf',
+            font_paths = [
                 '/System/Library/Fonts/STHeiti Light.ttc',
                 '/System/Library/Fonts/PingFang.ttc',
             ]
-            for font_path in macos_fonts:
+            for font_path in font_paths:
                 if os.path.exists(font_path):
-                    try:
-                        prop = fm.FontProperties(fname=font_path)
-                        font_found = prop
-                        break
-                    except:
-                        continue
-                        
+                    font_file = font_path
+                    break
         else:  # Linux
-            linux_fonts = [
-                '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            font_paths = [
                 '/usr/share/fonts/wqy-microhei/wqy-microhei.ttc',
-                '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+                '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
             ]
-            for font_path in linux_fonts:
+            for font_path in font_paths:
                 if os.path.exists(font_path):
-                    try:
-                        prop = fm.FontProperties(fname=font_path)
-                        font_found = prop
-                        break
-                    except:
-                        continue
+                    font_file = font_path
+                    break
         
-        # 设置matplotlib全局字体配置
-        if font_found:
-            plt.rcParams['font.family'] = [font_found.get_name()]
-        else:
-            # 后备字体名称设置
-            if system == 'Windows':
-                plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'SimSun']
-            elif system == 'Darwin':
-                plt.rcParams['font.sans-serif'] = ['STHeiti', 'PingFang SC', 'Arial Unicode MS']
-            else:
-                plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'WenQuanYi Micro Hei']
-        
-        plt.rcParams['font.family'] = 'sans-serif'
-        plt.rcParams['axes.unicode_minus'] = False
-        
-        return font_found
+        return font_file
     
     def _parse_markdown_to_tree(self, markdown_text: str) -> dict:
         """
@@ -268,65 +198,146 @@ class MindMapHorizontalTool(Tool):
             count += self._count_total_nodes(child)
         return count
 
-    def _generate_png_mindmap(self, tree_data: dict, output_file: str, title: str = "Mind Map", layout_type: str = "horizontal") -> bool:
+    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
         """
-        Generate PNG mind map with perfect Chinese character rendering and consistent colors (Horizontal)
+        使用PIL绘制中文文本，确保完美显示 (水平布局)
         """
         try:
-            # 更强力的中文字体设置
-            chinese_font_prop = self._setup_chinese_fonts()
+            from PIL import ImageFont, ImageDraw
+            
+            # 确保文本正确编码
+            if isinstance(text, bytes):
+                safe_text = text.decode('utf-8', errors='replace')
+            else:
+                safe_text = str(text).strip()
+            
+            if not safe_text:
+                safe_text = f"Node{depth_level}"
+            
+            print(f"Drawing horizontal text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
+            
+            # 字体大小 (水平布局略小)
+            base_font_size = 13
+            font_size = max(base_font_size - (depth_level * 1.5), 8)
+            
+            # 加载字体
+            font = None
+            if font_file and os.path.exists(font_file):
+                try:
+                    font = ImageFont.truetype(font_file, font_size)
+                    print(f"Loaded font from: {font_file}")
+                except Exception as e:
+                    print(f"Failed to load font: {e}")
+            
+            # 如果字体加载失败，使用默认字体
+            if font is None:
+                try:
+                    font = ImageFont.load_default()
+                    print("Using default font")
+                except:
+                    print("Failed to load default font")
+                    return
+            
+            # 计算文本大小
+            bbox = draw.textbbox((0, 0), safe_text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # 绘制背景框 (水平布局样式)
+            padding = max(6 - depth_level, 3)  # 稍微紧凑一些
+            if depth_level == 1:
+                border_width = 3
+            else:
+                border_width = 2
+            
+            # 背景框坐标
+            box_x1 = x - text_width // 2 - padding
+            box_y1 = y - text_height // 2 - padding
+            box_x2 = x + text_width // 2 + padding
+            box_y2 = y + text_height // 2 + padding
+            
+            # 绘制圆角矩形背景
+            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
+                                 radius=4, fill='white', outline=color, width=border_width)
+            
+            # 绘制文本
+            text_x = x - text_width // 2
+            text_y = y - text_height // 2
+            draw.text((text_x, text_y), safe_text, font=font, fill=color)
+            
+            print(f"Successfully drew horizontal text: '{safe_text}'")
+            
+        except Exception as e:
+            print(f"PIL horizontal text drawing error: {e}")
+            # 最简单的回退方案
+            try:
+                draw.text((x-10, y-5), f"Node{depth_level}", fill=color)
+            except:
+                pass
+
+    def _generate_png_mindmap(self, tree_data: dict, output_file: str, temp_dir: str) -> bool:
+        """
+        Generate PNG mind map with PIL-based Chinese text rendering (Horizontal)
+        """
+        try:
+            print("Starting horizontal mind map generation with PIL...")
+            
+            # 设置PIL中文字体
+            font_file = self._setup_pil_chinese_font(temp_dir)
             
             import matplotlib
+            matplotlib.use('Agg')
             import matplotlib.pyplot as plt
-            import matplotlib.patches as patches
-            from matplotlib.patches import FancyBboxPatch, ConnectionPatch
             import numpy as np
+            from PIL import Image, ImageDraw
             
-            # FIXED: Limit canvas size for horizontal layout to prevent performance issues
+            # Calculate canvas size for horizontal layout
             tree_depth = self._calculate_tree_depth(tree_data)
             total_nodes = self._count_total_nodes(tree_data)
             
-            # Calculate optimal but LIMITED canvas size for horizontal layout
-            base_width = 16    # Reduced from 20
-            base_height = 10   # Reduced from 12
-            max_width = 24     # Maximum width limit for horizontal
-            max_height = 14    # Maximum height limit
+            base_width = 16
+            base_height = 10
+            max_width = 24
+            max_height = 14
             
-            width = min(base_width + (tree_depth * 3), max_width)   # Horizontal needs more width
-            height = min(base_height + (total_nodes * 0.3), max_height)  # Reduced multiplier
+            width = min(base_width + (tree_depth * 3), max_width)
+            height = min(base_height + (total_nodes * 0.3), max_height)
             
             fig, ax = plt.subplots(1, 1, figsize=(width, height))
             
-            # FIXED: Limit axis ranges for better density (horizontal layout)
-            max_x_limit = 12  # Extended for horizontal expansion
-            max_y_limit = 8   # Compact vertical range
+            # Set axis limits for horizontal layout
+            max_x_limit = 12
+            max_y_limit = 8
             x_limit = min(max_x_limit, max(10, tree_depth * 3))
             y_limit = min(max_y_limit, max(6, total_nodes // 4))
             
-            ax.set_xlim(-3, x_limit)  # Start closer to left for horizontal layout
+            ax.set_xlim(-3, x_limit)
             ax.set_ylim(-y_limit, y_limit)
             ax.axis('off')
             
-            # Compact color palette
+            # Color palette
             branch_colors = [
                 '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
                 '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
             ]
             
+            # 存储文本信息，稍后用PIL绘制
+            text_elements = []
+            
             def draw_curved_branch_line(start_x, start_y, end_x, end_y, color='#333333', linewidth=3):
-                """Draw smooth curved branch line optimized for horizontal layout with better control"""
+                """Draw smooth curved branch line optimized for horizontal layout"""
                 if abs(start_x - end_x) < 0.01 and abs(start_y - end_y) < 0.01:
-                    return  # Skip if points are too close
+                    return
                 
                 dx = end_x - start_x
                 dy = end_y - start_y
                 distance = math.sqrt(dx*dx + dy*dy)
                 
-                if distance < 0.1:  # Too close, draw straight line
+                if distance < 0.1:
                     ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=linewidth, alpha=0.8)
                     return
                 
-                control_distance = min(distance * 0.3, 1.5)  # Limit control distance for horizontal
+                control_distance = min(distance * 0.3, 1.5)
                 
                 # For horizontal layout, prioritize smooth horizontal curves
                 cp1_x = start_x + control_distance
@@ -334,108 +345,58 @@ class MindMapHorizontalTool(Tool):
                 cp2_x = end_x - control_distance * 0.5
                 cp2_y = end_y - dy * 0.3
                 
-                t = np.linspace(0, 1, 40)  # Reduced points for performance
+                t = np.linspace(0, 1, 40)
                 curve_x = (1-t)**3 * start_x + 3*(1-t)**2*t * cp1_x + 3*(1-t)*t**2 * cp2_x + t**3 * end_x
                 curve_y = (1-t)**3 * start_y + 3*(1-t)**2*t * cp1_y + 3*(1-t)*t**2 * cp2_y + t**3 * end_y
                 
                 ax.plot(curve_x, curve_y, color=color, linewidth=linewidth, alpha=0.8)
             
-            def draw_text_label(x, y, text, depth_level, color='#333333'):
-                """强化的中文文本渲染 (水平布局)"""
-                # 字体大小 (水平布局略小)
-                base_font_size = 13
-                font_size = max(base_font_size - (depth_level * 1.5), 8)
-                
-                # 样式 (水平布局)
-                if depth_level == 1:  # Root
-                    bbox_props = dict(boxstyle="round,pad=0.4", facecolor='white', 
-                                    edgecolor='#333333', linewidth=2)
-                    weight = 'bold'
-                else:  # All other levels
-                    padding = max(0.25 - (depth_level * 0.02), 0.12)
-                    bbox_props = dict(boxstyle=f"round,pad={padding}", facecolor='white', 
-                                    edgecolor=color, linewidth=1.2, alpha=0.9)
-                    weight = 'normal'
-                
-                # 更强力的文本处理
-                try:
-                    # 确保输入是字符串
-                    if isinstance(text, bytes):
-                        safe_text = text.decode('utf-8', errors='replace')
-                    else:
-                        safe_text = str(text)
-                    
-                    # 清理空白字符
-                    safe_text = safe_text.strip()
-                    if not safe_text:
-                        safe_text = f"Node{depth_level}"
-                    
-                    # 直接使用找到的字体进行渲染
-                    if chinese_font_prop:
-                        ax.text(x, y, safe_text, fontsize=font_size, weight=weight,
-                               ha='center', va='center', color=color, bbox=bbox_props,
-                               fontproperties=chinese_font_prop)
-                    else:
-                        # 强制使用系统默认中文字体
-                        ax.text(x, y, safe_text, fontsize=font_size, weight=weight,
-                               ha='center', va='center', color=color, bbox=bbox_props,
-                               fontfamily='sans-serif')
-                               
-                except Exception as e:
-                    print(f"文本渲染错误 (水平): {e}, 文本: {text}")
-                    # 最终回退使用ASCII字符
-                    try:
-                        fallback_text = f"Text{depth_level}"
-                        ax.text(x, y, fallback_text, fontsize=font_size, weight=weight,
-                               ha='center', va='center', color=color, bbox=bbox_props)
-                    except:
-                        # 如果连ASCII都失败，使用最基础的绘制
-                        ax.text(x, y, "Node", fontsize=font_size,
-                               ha='center', va='center', color=color)
+            def store_text_element(x, y, text, depth_level, color='#333333'):
+                """Store text element for later PIL rendering"""
+                text_elements.append({
+                    'x': x, 'y': y, 'text': text, 
+                    'depth_level': depth_level, 'color': color
+                })
 
             def layout_dynamic_horizontal_mindmap(node, start_x=-2, start_y=0, depth_level=1, 
                                                 available_height=None, inherited_color='#333333'):
-                """
-                FIXED: 完全动态的水平布局，确保颜色一致性
-                """
+                """Dynamic horizontal layout with color consistency"""
                 root_content = node.get('content', 'Root')
                 children = node.get('children', [])
                 
                 # Calculate available height for this subtree if not provided
                 if available_height is None:
-                    available_height = y_limit * 2  # Full available height
+                    available_height = y_limit * 2
                 
-                # FIXED: 使用继承的颜色或为根节点设置默认颜色
+                # Color assignment
                 if depth_level == 1:
-                    node_color = '#333333'  # 根节点固定为深灰色
+                    node_color = '#333333'
                 else:
-                    node_color = inherited_color  # 使用从父节点继承的颜色
+                    node_color = inherited_color
                 
-                # 绘制当前节点
-                draw_text_label(start_x, start_y, root_content, depth_level, node_color)
+                # Store text element for PIL rendering
+                store_text_element(start_x, start_y, root_content, depth_level, node_color)
                 
                 if not children:
-                    return start_y  # Return the Y position used
+                    return start_y
                 
                 child_count = len(children)
                 
-                # FIXED: More compact horizontal spacing
-                base_x_spacing = 3.0  # Reduced from 4.0
-                x_spacing = base_x_spacing + (depth_level * 0.5)  # Reduced multiplier
+                # More compact horizontal spacing
+                base_x_spacing = 3.0
+                x_spacing = base_x_spacing + (depth_level * 0.5)
                 next_x = start_x + x_spacing
                 
                 # Ensure next_x doesn't exceed bounds
                 if next_x > x_limit - 1:
                     next_x = x_limit - 1
                 
-                # FIXED: More compact vertical spacing
+                # More compact vertical spacing
                 if child_count == 1:
-                    # Single child: keep same Y position
                     child_positions = [start_y]
                 else:
-                    # Multiple children: distribute vertically within available height
-                    max_vertical_spacing = min(available_height / max(child_count, 1), 4.0)  # Reduced from 6.0
-                    vertical_spacing = min(max_vertical_spacing, 3.0)  # Max spacing limit
+                    max_vertical_spacing = min(available_height / max(child_count, 1), 4.0)
+                    vertical_spacing = min(max_vertical_spacing, 3.0)
                     
                     # Calculate starting Y position to center the children
                     total_height = (child_count - 1) * vertical_spacing
@@ -451,16 +412,14 @@ class MindMapHorizontalTool(Tool):
                 max_child_y = float('-inf')
                 
                 for i, (child, child_y) in enumerate(zip(children, child_positions)):
-                    # FIXED: 为第一级子节点选择颜色，后续层级继承父节点颜色
+                    # Color assignment
                     if depth_level == 1:
-                        # 根节点的直接子节点获得新颜色
                         branch_color = branch_colors[i % len(branch_colors)]
                     else:
-                        # 更深层级的节点继承父节点的颜色
                         branch_color = inherited_color
                     
-                    # FIXED: Draw connection line with consistent color and bounds checking
-                    line_thickness = max(2.5 - (depth_level * 0.2), 1)  # Reduced thickness
+                    # Draw connection line with bounds checking
+                    line_thickness = max(2.5 - (depth_level * 0.2), 1)
                     
                     # Validate coordinates before drawing
                     if (abs(start_x - next_x) > 0.01 or abs(start_y - child_y) > 0.01) and \
@@ -472,8 +431,8 @@ class MindMapHorizontalTool(Tool):
                     # Calculate available height for child subtree
                     child_height = max(vertical_spacing * 0.8, 1.0) if child_count > 1 else available_height * 0.6
                     
-                    # FIXED: 递归布局时传递颜色
-                    if next_x < x_limit - 0.5:  # Only recurse if there's space
+                    # Recursive layout
+                    if next_x < x_limit - 0.5:
                         actual_child_y = layout_dynamic_horizontal_mindmap(
                             child, next_x, child_y, depth_level + 1, child_height, branch_color
                         )
@@ -482,8 +441,8 @@ class MindMapHorizontalTool(Tool):
                         min_child_y = min(min_child_y, actual_child_y)
                         max_child_y = max(max_child_y, actual_child_y)
                     else:
-                        # No space for recursion, just draw the child label with inherited color
-                        draw_text_label(next_x, child_y, child.get('content', 'Node'), depth_level + 1, branch_color)
+                        # No space for recursion, store the child text element for PIL rendering
+                        store_text_element(next_x, child_y, child.get('content', 'Node'), depth_level + 1, branch_color)
                         min_child_y = min(min_child_y, child_y)
                         max_child_y = max(max_child_y, child_y)
                 
@@ -493,19 +452,53 @@ class MindMapHorizontalTool(Tool):
                 else:
                     return start_y
 
-            # Execute dynamic horizontal layout
+            # Execute dynamic horizontal layout (只绘制线条，存储文本)
+            print("Starting layout...")
             layout_dynamic_horizontal_mindmap(tree_data)
+            print("Layout complete")
             
-            # FIXED: Save with optimized DPI for smaller file size
+            # 先保存matplotlib图像(只有线条)
             plt.tight_layout()
-            plt.savefig(output_file, dpi=150, bbox_inches='tight',  # Reduced DPI from 300 to 150
+            temp_base_file = os.path.join(temp_dir, "base_horizontal_mindmap.png")
+            plt.savefig(temp_base_file, dpi=150, bbox_inches='tight',
                        facecolor='white', edgecolor='none', format='png')
             plt.close()
             
+            # 使用PIL加载matplotlib生成的基础图像
+            base_img = Image.open(temp_base_file)
+            draw = ImageDraw.Draw(base_img)
+            
+            # 获取图像尺寸用于坐标转换
+            img_width, img_height = base_img.size
+            
+            print(f"Base horizontal image size: {img_width}x{img_height}")
+            print(f"Text elements to draw: {len(text_elements)}")
+            
+            # 坐标转换函数 (matplotlib坐标 -> PIL像素坐标)
+            def transform_coords(x, y):
+                # x: [-3, x_limit] -> [0, img_width]
+                # y: [-y_limit, y_limit] -> [0, img_height] (注意Y轴翻转)
+                pixel_x = int((x + 3) / (x_limit + 3) * img_width)
+                pixel_y = int((y_limit - y) / (2 * y_limit) * img_height)
+                return pixel_x, pixel_y
+            
+            # 使用PIL绘制所有文本元素
+            for element in text_elements:
+                pixel_x, pixel_y = transform_coords(element['x'], element['y'])
+                self._draw_text_with_pil(
+                    base_img, draw, pixel_x, pixel_y,
+                    element['text'], element['depth_level'], 
+                    element['color'], font_file
+                )
+            
+            # 保存最终图像
+            base_img.save(output_file, 'PNG')
+            
+            print(f"Horizontal mind map with PIL text generated: {output_file}")
             return True
             
         except Exception as e:
-            print(f"Mind map generation error (horizontal): {str(e)}")
+            print(f"Mind map generation error: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -520,7 +513,7 @@ class MindMapHorizontalTool(Tool):
             filename = tool_parameters.get('filename', '').strip()
             
             if not markdown_content:
-                yield self.create_text_message('❌ Please provide Markdown text content.')
+                yield self.create_text_message('Horizontal mind map generation failed: No Markdown content provided.')
                 return
             
             # Handle filename
@@ -530,8 +523,6 @@ class MindMapHorizontalTool(Tool):
             if not display_filename.endswith('.png'):
                 display_filename += '.png'
             
-            yield self.create_text_message('🌈 Generating perfect Chinese horizontal layout mind map with consistent colors...')
-            
             # Create temporary directory
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_output_path = os.path.join(temp_dir, display_filename)
@@ -539,31 +530,31 @@ class MindMapHorizontalTool(Tool):
                 # Parse Markdown to tree structure
                 tree_data = self._parse_markdown_to_tree(markdown_content)
                 
-                # Generate PNG mind map
-                success = self._generate_png_mindmap(tree_data, temp_output_path, "Perfect Chinese Horizontal Layout Mind Map", "horizontal")
+                # Generate PNG mind map with PIL
+                success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
                 
                 if success and os.path.exists(temp_output_path):
                     # Read generated PNG file
                     with open(temp_output_path, 'rb') as f:
                         png_data = f.read()
                     
-                    # Calculate file size in MB (as requested)
+                    # Calculate file size in MB
                     file_size = len(png_data)
-                    size_mb = file_size / (1024 * 1024)  # Convert to MB
+                    size_mb = file_size / (1024 * 1024)
                     size_text = f"{size_mb:.2f}M"
                     
                     yield self.create_blob_message(
                         blob=png_data,
                         meta={'mime_type': 'image/png', 'filename': display_filename}
                     )
-                    yield self.create_text_message(f'Perfect Chinese horizontal layout mind map with consistent colors generated successfully! File size: {size_text}')
+                    yield self.create_text_message(f'Horizontal mind map generation successful! File size: {size_text}')
                 else:
-                    yield self.create_text_message('Mind map generation failed. Please check your Markdown format.')
+                    yield self.create_text_message('Horizontal mind map generation failed: Unable to create image file.')
         
         except Exception as e:
-            error_msg = f"Tool execution failed: {str(e)}"
-            print(f"❌ {error_msg}")
-            yield self.create_text_message(f'Mind map generation failed: {str(e)}')
+            error_msg = str(e)
+            print(f"Tool execution failed: {error_msg}")
+            yield self.create_text_message(f'Horizontal mind map generation failed: {error_msg}')
 
 
 # Export tool class for Dify
