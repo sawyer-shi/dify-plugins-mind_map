@@ -1,11 +1,11 @@
+# Dify插件框架
 dify-plugin
-markdown
-playwright
-selenium
-Pillow
-requests
-urllib3
-pyee
 
+# 图像处理和绘制
+Pillow>=8.0.0
 matplotlib>=3.5.0
 numpy>=1.21.0
+
+# 系统工具 (标准库，不需要安装)
+# os, re, tempfile, time, math, shutil, typing
+# 注意：我们使用自定义的markdown解析器，不依赖markdown库

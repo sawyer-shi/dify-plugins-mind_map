@@ -22,7 +22,7 @@ class MindMapCenterTool(Tool):
     
     def _setup_pil_chinese_font(self, temp_dir):
         """
-        使用PIL/Pillow进行中文字体处理的解决方案
+        使用PIL/Pillow进行中文字体处理的解决方案 - 优先使用嵌入字体
         """
         try:
             from PIL import Image, ImageDraw, ImageFont
@@ -35,7 +35,17 @@ class MindMapCenterTool(Tool):
         system = platform.system()
         print(f"System: {system}")
         
-        # 查找中文字体文件
+        # 优先使用嵌入的字体文件
+        embedded_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'chinese_font.ttc')
+        embedded_font_path = os.path.abspath(embedded_font_path)
+        
+        if os.path.exists(embedded_font_path):
+            print(f"Found embedded Chinese font: {embedded_font_path}")
+            return embedded_font_path
+        
+        print("Embedded font not found, trying system fonts...")
+        
+        # 查找系统中文字体文件（作为备用）
         font_file = None
         
         if system == 'Windows':
@@ -48,25 +58,30 @@ class MindMapCenterTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    print(f"Found Chinese font: {font_path}")
+                    print(f"Found system Chinese font: {font_path}")
                     break
         elif system == 'Darwin':  # macOS
             font_paths = [
                 '/System/Library/Fonts/STHeiti Light.ttc',
                 '/System/Library/Fonts/PingFang.ttc',
+                '/System/Library/Fonts/Hiragino Sans GB.ttc',
             ]
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
+                    print(f"Found system Chinese font: {font_path}")
                     break
         else:  # Linux
             font_paths = [
                 '/usr/share/fonts/wqy-microhei/wqy-microhei.ttc',
+                '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
                 '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+                '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
             ]
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
+                    print(f"Found system Chinese font: {font_path}")
                     break
         
         return font_file
@@ -207,12 +222,8 @@ class MindMapCenterTool(Tool):
         try:
             from PIL import ImageFont, ImageDraw
             
-            # 确保文本正确编码
-            if isinstance(text, bytes):
-                safe_text = text.decode('utf-8', errors='replace')
-            else:
-                safe_text = str(text).strip()
-            
+            # 简化文本处理
+            safe_text = str(text).strip()
             if not safe_text:
                 safe_text = f"Node{depth_level}"
             
@@ -293,6 +304,26 @@ class MindMapCenterTool(Tool):
             import matplotlib.pyplot as plt
             import numpy as np
             from PIL import Image, ImageDraw
+            
+            # 配置matplotlib中文字体
+            import matplotlib.font_manager as fm
+            if font_file and os.path.exists(font_file):
+                try:
+                    # 添加字体到matplotlib
+                    fm.fontManager.addfont(font_file)
+                    font_prop = fm.FontProperties(fname=font_file)
+                    plt.rcParams['font.family'] = font_prop.get_name()
+                    print(f"Matplotlib configured with font: {font_file}")
+                except Exception as e:
+                    print(f"Failed to configure matplotlib font: {e}")
+                    # 使用系统默认中文字体配置
+                    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
+                    plt.rcParams['axes.unicode_minus'] = False
+            else:
+                # 使用系统默认中文字体配置
+                plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
+                plt.rcParams['axes.unicode_minus'] = False
+                print("Using system default Chinese font configuration")
             
             # Calculate canvas size
             tree_depth = self._calculate_tree_depth(tree_data)
