@@ -229,9 +229,9 @@ class MindMapCenterTool(Tool):
             
             print(f"Drawing text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
             
-            # 字体大小
-            base_font_size = 14
-            font_size = max(base_font_size - (depth_level * 2), 8)
+            # 字体大小 - 扩大一倍
+            base_font_size = 28
+            font_size = max(base_font_size - (depth_level * 4), 16)
             
             # 加载字体
             font = None
@@ -256,13 +256,13 @@ class MindMapCenterTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # 绘制背景框
-            padding = max(8 - depth_level, 4)
+            # 绘制背景框 - 扩大一倍
+            padding = max(16 - depth_level * 2, 8)
             if depth_level == 1:
                 # 根节点使用更粗的边框
-                border_width = 3
+                border_width = 6
             else:
-                border_width = 2
+                border_width = 4
             
             # 背景框坐标
             box_x1 = x - text_width // 2 - padding
@@ -450,7 +450,7 @@ class MindMapCenterTool(Tool):
                     else:
                         branch_color = inherited_color
                     
-                    # Draw connection line
+                    # Draw connection line - 线条缩小一倍
                     line_thickness = max(3 - depth_level * 0.5, 1)
                     draw_curved_branch_line(center_x, center_y, child_x, child_y, 
                                           color=branch_color, linewidth=line_thickness)

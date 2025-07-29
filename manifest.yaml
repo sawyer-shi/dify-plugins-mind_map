@@ -1,4 +1,4 @@
-version: 1.0.0
+version: 0.0.1
 type: plugin
 author: sawyer-shi
 name: mind_map
@@ -10,12 +10,12 @@ description:
   zh_Hans: 将Markdown文本转换为精美的脑图，支持中心结构和左右结构两种布局
 icon: icon.png
 resource:
-  memory: 268435456
+  memory: 104857600
 plugins:
   tools:
     - provider/mind_map.yaml
 meta:
-  version: 1.0.0
+  version: 0.0.1
   author: sawyer-shi
   arch:
     - amd64
