@@ -1,10 +1,10 @@
-version: 0.0.1
+﻿version: 0.0.1
 type: plugin
 author: sawyer-shi
 name: mind_map
 label:
   en_US: Mind Map Generator
-  zh_Hans: 脑图
+  zh_Hans: 脑图生成器
 description:
   en_US: Generate beautiful mind maps from Markdown text with center and horizontal layouts
   zh_Hans: 将Markdown文本转换为精美的脑图，支持中心结构和左右结构两种布局

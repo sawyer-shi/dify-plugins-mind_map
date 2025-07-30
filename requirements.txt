@@ -1,11 +1,11 @@
-# Dify插件框架
+﻿# Dify鎻掍欢妗嗘灦
 dify-plugin
 
-# 图像处理和绘制
+# 鍥惧儚澶勭悊鍜岀粯鍒?
 Pillow>=8.0.0
 matplotlib>=3.5.0
 numpy>=1.21.0
 
-# 系统工具 (标准库，不需要安装)
+# 绯荤粺宸ュ叿 (鏍囧噯搴擄紝涓嶉渶瑕佸畨瑁?
 # os, re, tempfile, time, math, shutil, typing
-# 注意：我们使用自定义的markdown解析器，不依赖markdown库
+# 娉ㄦ剰锛氭垜浠娇鐢ㄨ嚜瀹氫箟鐨刴arkdown瑙ｆ瀽鍣紝涓嶄緷璧杕arkdown搴?

@@ -7,7 +7,7 @@ identity:
 description:
   human:
     en_US: Generate beautiful mind maps with horizontal (left-to-right) layout from Markdown text
-    zh_Hans: 将Markdown文本转换为精美的左右结构（水平展开）脑图
+    zh_Hans: 将Markdown文本转换为精美的左右结构(水平展开)脑图
   llm: A powerful tool that converts Markdown text into beautiful PNG mind maps with horizontal (left-to-right) layout
 parameters:
   - name: markdown_content
@@ -29,7 +29,7 @@ parameters:
       zh_Hans: 文件名
     human_description:
       en_US: Optional filename for the output PNG file (without extension)
-      zh_Hans: PNG输出文件的文件名（可选，无需扩展名）
+      zh_Hans: PNG输出文件的文件名(可选，无需扩展名)
     llm_description: Optional filename for the generated PNG mind map. If not provided, a timestamp will be used
     form: llm
 extra:

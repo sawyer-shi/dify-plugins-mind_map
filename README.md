@@ -1,242 +1,89 @@
-# Mind Map Generator Plugin
+﻿# Mind Map Generator Plugin / 思维导图生成插件
+
+[English](#english) | [中文](#中文)
+
+---
+
+## English
+
+A powerful mind map generation plugin that intelligently converts Markdown text into beautiful PNG mind maps. Supports both center radial and horizontal layouts, with perfect Chinese environment compatibility.
+
+### Version Information
+
+- **Current Version**: v0.0.1
+- **Release Date**: 2025-07-29
+- **Compatibility**: Dify Plugin Framework
+- **Python Version**: 3.7+
+
+### Core Features
+
+#### Dual Layout Support
+- **Center Radial Layout**: Classic radial mind maps, perfect for knowledge systems and concept relationships
+- **Horizontal Layout**: Left-to-right hierarchical expansion, ideal for processes and timelines
+
+#### Perfect Chinese Support
+- Built-in 18.79MB Chinese font file ensures perfect rendering in server environments
+- Multi-platform font detection and fallback mechanisms
+- Display effects optimized specifically for Chinese users
+
+#### Intelligent Optimization
+- **Dynamic Size Adjustment**: Intelligently adjusts canvas and font size based on content complexity
+- **Anti-overlap Algorithm**: Advanced collision detection ensures clear, readable text
+- **Memory Optimization**: 100MB memory limit with efficient resource management
+
+#### Technical Advantages
+- **Pure Python Implementation**: No external dependencies like Node.js required
+- **High-Quality Output**: 150 DPI PNG images with Bézier curve smooth connections
+- **Multi-platform Compatibility**: Full support for Windows, macOS, and Linux
+
+### Developer Information
+
+- **Author**: [@sawyer-shi](https://github.com/sawyer-shi)
+- **Email**: sawyer36@foxmail.com
+- **License**: MIT License
+- **Support**: Through Dify platform and GitHub Issues
+
+---
+
+## 中文
 
 一个功能强大的思维导图生成插件，能够将Markdown文本智能转换为精美的PNG思维导图。支持中心辐射和水平展开两种经典布局，完美适配中文环境。
 
-## 📋 版本信息
+### 版本信息
 
-**当前版本**: v0.0.1  
-**发布日期**: 2025-01-28  
-**兼容性**: Dify Plugin Framework  
-**Python版本**: 3.7+
+- **当前版本**: v0.0.1
+- **发布日期**: 2025-07-29
+- **兼容性**: Dify Plugin Framework
+- **Python版本**: 3.7+
 
-## ✨ 核心功能
+### 核心特性
 
-### 🎯 双布局支持
-- **中心辐射布局 (Center)**: 从中心节点向四周放射展开，适合展示完整知识体系和概念关系
-- **水平展开布局 (Horizontal)**: 从左到右层次化展开，适合流程图和时间线展示
+#### 双布局支持
+- **中心辐射布局**: 经典的放射状思维导图，适合知识体系和概念关系展示
+- **水平展开布局**: 从左到右的层次展开，适合流程和时间线展示
 
-### 🎨 智能视觉设计
-- **动态尺寸调整**: 根据内容复杂度自动调整画布大小和字体尺寸
-- **分层颜色系统**: 12种精心挑选的颜色自动分配给不同分支
-- **优雅线条设计**: 使用贝塞尔曲线绘制平滑连接线，支持动态粗细调整
-- **高清输出**: 150 DPI高质量PNG图像输出
+#### 完美中文支持
+- 内置18.79MB中文字体文件，确保服务器环境完美渲染
+- 支持多平台字体检测和回退机制
+- 专为中文用户优化的显示效果
 
-### 🌏 完美中文支持
-- **嵌入式字体**: 内置18.79MB中文字体文件，确保服务器环境正常显示
-- **多平台兼容**: 支持Windows、macOS、Linux系统字体自动检测
-- **字体回退机制**: 智能字体加载策略，确保在任何环境下都能正常显示
+#### 智能优化
+- **动态大小调整**: 根据内容复杂度智能调整画布和字体大小
+- **防重叠算法**: 先进的碰撞检测，确保文本清晰可读
+- **内存优化**: 100MB内存限制，高效资源管理
 
-### 🧠 智能解析引擎
-- **无限层级支持**: 支持任意深度的Markdown标题和列表嵌套
-- **混合内容处理**: 同时支持标题(#)和列表(-)的混合结构
-- **动态布局算法**: 根据内容自动计算最优节点位置和间距
+#### 技术优势
+- **纯Python实现**: 无需Node.js等外部依赖
+- **高质量输出**: 150 DPI PNG图像，支持贝塞尔曲线平滑连线
+- **多平台兼容**: Windows、macOS、Linux全平台支持
 
-## 🛠️ 技术架构
+### 开发者信息
 
-### 核心技术栈
-```
-核心框架: Dify Plugin Framework
-图形引擎: Matplotlib 3.5.0+
-图像处理: Pillow (PIL) 8.0.0+
-数值计算: NumPy 1.21.0+
-文本解析: 自研Markdown解析器
-字体渲染: PIL + Matplotlib双引擎
-```
-
-### 关键技术特性
-- **纯Python实现**: 无需Node.js或其他外部依赖
-- **内存优化**: 100MB内存限制，智能资源管理
-- **双引擎渲染**: Matplotlib绘制线条 + PIL渲染文字，确保最佳效果
-- **临时文件管理**: 自动清理临时文件，避免磁盘空间浪费
-
-## 📖 使用指南
-
-### 输入参数
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| `markdown_content` | string | ✅ | Markdown格式的文本内容 |
-| `layout_type` | string | ✅ | 布局类型：`center` 或 `horizontal` |
-| `filename` | string | ❌ | 输出文件名（不含扩展名） |
-
-### Markdown格式示例
-
-```markdown
-# 人工智能发展
-## 机器学习
-### 监督学习
-- 线性回归
-- 决策树
-- 支持向量机
-### 无监督学习
-- 聚类算法
-- 降维技术
-## 深度学习
-### 神经网络
-- 前馈网络
-- 循环网络
-- 卷积网络
-### 应用领域
-- 计算机视觉
-- 自然语言处理
-```
-
-## 🎨 布局特色
-
-### 中心辐射布局 (Center)
-```
-特点：
-✓ 360度放射状分布
-✓ 彩色分支自动分配
-✓ 动态防重叠算法
-✓ 适合知识体系展示
-
-技术实现：
-- 极坐标计算节点位置
-- 贝塞尔曲线连接
-- 动态字体大小调整
-- 智能颜色分配
-```
-
-### 水平展开布局 (Horizontal)
-```
-特点：
-✓ 从左到右层次展开
-✓ 符合阅读习惯
-✓ 清晰的层级关系
-✓ 适合流程图展示
-
-技术实现：
-- 递归布局算法
-- 垂直空间动态分配
-- 分支高度自适应
-- 连线智能避让
-```
-
-## 📊 性能指标
-
-### 系统要求
-- **最小内存**: 100MB RAM
-- **推荐内存**: 256MB RAM
-- **硬盘空间**: 100MB (最小) / 500MB (推荐)
-- **处理器**: 双核1GHz+ (推荐四核2GHz+)
-
-### 性能表现
-- **小型脑图** (< 20节点): < 2秒
-- **中型脑图** (20-50节点): 2-5秒
-- **大型脑图** (50-100节点): 5-10秒
-- **最大支持**: 200+节点
-
-### 输出规格
-- **图像格式**: PNG
-- **分辨率**: 150 DPI
-- **最大尺寸**: 3600×2400像素
-- **文件大小**: 通常200KB-2MB
-
-## 🔧 配置说明
-
-### 内置配置
-```yaml
-# 画布尺寸限制
-center_max_size: 20×16 inches
-horizontal_max_size: 24×14 inches
-
-# 字体配置
-base_font_size: 28px (center) / 26px (horizontal)
-min_font_size: 16px
-font_family: 微软雅黑 / 黑体 / 宋体
-
-# 线条配置
-max_line_width: 6px -> 3px (最新调整)
-min_line_width: 1px
-curve_smoothness: 贝塞尔曲线
-```
-
-### 颜色方案
-```python
-branch_colors = [
-    '#FF6B6B',  # 珊瑚红
-    '#4ECDC4',  # 青绿色
-    '#45B7D1',  # 天蓝色
-    '#96CEB4',  # 薄荷绿
-    '#FECA57',  # 金黄色
-    '#FF9FF3',  # 粉紫色
-    '#54A0FF',  # 蓝色
-    '#5F27CD',  # 深紫色
-    '#00D2D3',  # 青色
-    '#FF9F43',  # 橙色
-    '#EE5A24',  # 红橙色
-    '#0984E3'   # 深蓝色
-]
-```
-
-## 🚀 最新更新
-
-### v0.0.1 (2025-01-28)
-- 🎯 **线条优化**: 将线条粗细减半，保持字体和文本框大小
-- 💾 **内存优化**: 内存限制从256MB降低至100MB，提升资源效率
-- 🔧 **版本规范**: 采用语义化版本控制 (SemVer)
-- 📝 **文档更新**: 完善技术文档和使用说明
-- 🐛 **稳定性提升**: 修复多项已知问题
-
-### 历史版本亮点
-- **v1.0.0**: 双布局支持，纯Python实现
-- **v0.0.4**: 移除Node.js依赖，直接PNG生成
-- **v0.0.3**: 贝塞尔曲线，颜色分层设计
-
-## 🎯 使用场景
-
-### 教育培训
-- 📚 课程知识体系梳理
-- 🎓 学习笔记可视化
-- 👨‍🏫 教学内容展示
-
-### 商业应用
-- 💼 项目规划和管理
-- 📊 业务流程图
-- 🎯 战略规划展示
-
-### 个人使用
-- 🧠 头脑风暴记录
-- 📝 会议纪要整理
-- 🎨 创意思维展示
-
-## ⚠️ 注意事项
-
-### 内容建议
-- **标题层级**: 建议不超过6级（# - ######）
-- **节点文本**: 单个节点建议不超过15个汉字
-- **分支数量**: 单节点子分支建议不超过10个
-- **总节点数**: 建议控制在80个以内以确保最佳性能（100MB内存限制）
-
-### 格式要求
-- 使用标准Markdown语法
-- 标题必须以#开头
-- 列表项使用-或*
-- 避免使用特殊字符
-
-## 🔍 故障排除
-
-### 常见问题
-1. **中文显示乱码**: 插件已内置中文字体，如仍有问题请检查系统字体
-2. **生成失败**: 请确保Markdown格式正确，避免空行和特殊字符
-3. **图片过大**: 可适当减少节点数量或文本长度
-4. **内存不足**: 插件限制100MB内存，建议简化内容结构或减少节点数量
-
-### 技术支持
-- 📧 Email: support@mindmap-plugin.com
-- 📖 文档: [在线帮助文档]
-- 🐛 Bug报告: [GitHub Issues]
+- **作者**: [@sawyer-shi](https://github.com/sawyer-shi)
+- **邮箱**: sawyer36@foxmail.com
+- **许可证**: MIT License
+- **支持**: 通过Dify平台和GitHub Issues
 
 ---
 
-## 📄 许可证
-
-本插件采用 **MIT License** 开源协议。
-
----
-
-**Mind Map Generator Plugin** - 让思维可视化变得简单而强大！ 🚀
-
-
-
+**Ready to create beautiful mind maps? / 准备好创建精美的思维导图了吗？** 
