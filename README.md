@@ -18,8 +18,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 ### Core Features
 
 #### Dual Layout Support
+<img width="1798" height="876" alt="workflow-testing-English" src="https://github.com/user-attachments/assets/524a0c5a-0872-437d-8275-53555bedc36a" />
+
 - **Center Radial Layout**: Classic radial mind maps, perfect for knowledge systems and concept relationships
+- <img width="2685" height="2385" alt="mid-map-English-2" src="https://github.com/user-attachments/assets/3096ef92-92cd-443f-a288-8dc117271a1f" />
 - **Horizontal Layout**: Left-to-right hierarchical expansion, ideal for processes and timelines
+- <img width="3585" height="2085" alt="mind-map-English-1" src="https://github.com/user-attachments/assets/90c6920a-96da-4016-8fea-db113ff3dd30" />
+
 
 #### Perfect Chinese Support
 - Built-in 18.79MB Chinese font file ensures perfect rendering in server environments
