@@ -21,9 +21,9 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 <img width="1798" height="876" alt="workflow-testing-English" src="https://github.com/user-attachments/assets/524a0c5a-0872-437d-8275-53555bedc36a" />
 
 - **Center Radial Layout**: Classic radial mind maps, perfect for knowledge systems and concept relationships
-- <img width="2685" height="2385" alt="mid-map-English-2" src="https://github.com/user-attachments/assets/3096ef92-92cd-443f-a288-8dc117271a1f" />
+  <img width="2685" height="2385" alt="mid-map-English-2" src="https://github.com/user-attachments/assets/3096ef92-92cd-443f-a288-8dc117271a1f" />
 - **Horizontal Layout**: Left-to-right hierarchical expansion, ideal for processes and timelines
-- <img width="3585" height="2085" alt="mind-map-English-1" src="https://github.com/user-attachments/assets/90c6920a-96da-4016-8fea-db113ff3dd30" />
+  <img width="3585" height="2085" alt="mind-map-English-1" src="https://github.com/user-attachments/assets/90c6920a-96da-4016-8fea-db113ff3dd30" />
 
 
 #### Perfect Chinese Support
@@ -65,8 +65,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 ### 核心特性
 
 #### 双布局支持
+<img width="1926" height="854" alt="workflow-testing-Chinese" src="https://github.com/user-attachments/assets/384220df-2257-4c00-8a79-79fefafe99eb" />
+
 - **中心辐射布局**: 经典的放射状思维导图，适合知识体系和概念关系展示
+  <img width="2685" height="2385" alt="mid-map-Chinese-2" src="https://github.com/user-attachments/assets/9a5ee39b-4c8f-4ab4-91e5-a59ea8b0765e" />
 - **水平展开布局**: 从左到右的层次展开，适合流程和时间线展示
+  <img width="3585" height="2085" alt="mind-map-Chinese-1" src="https://github.com/user-attachments/assets/37f2b7a7-fbe7-412c-b54b-3b53bd62f4ff" />
+
 
 #### 完美中文支持
 - 内置18.79MB中文字体文件，确保服务器环境完美渲染
