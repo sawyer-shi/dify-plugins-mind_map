@@ -6,6 +6,51 @@
 
 ---
 
+## English Version
+
+### Overview
+
+The Mind Map Generator Plugin ("Plugin") is designed to convert Markdown text into visual mind maps while prioritizing user privacy and data security. This privacy policy explains how we handle your data when you use our plugin within the Dify platform.
+
+### Data Collection
+
+**What we DO NOT collect:**
+- Personal identification information
+- User account details
+- Usage analytics or tracking data
+- Device information
+- Location data
+- Cookies or similar tracking technologies
+
+**What we process:**
+- Only the Markdown text content you provide as input
+- Temporary processing data required for mind map generation
+- Generated PNG image files (temporary)
+
+### Data Processing
+
+**Local Processing Only:**
+- All mind map generation occurs locally within the Dify platform sandbox
+- No data transmission to external servers or third-party services
+- No network connections established during processing
+
+### Data Storage
+
+**No Persistent Storage:**
+- We do not store your input text
+- We do not store generated mind maps
+- We do not maintain any user data databases
+- All data exists only during brief processing periods
+
+### Contact Information
+
+**Developer:** [@sawyer-shi](https://github.com/sawyer-shi)
+**Email:** sawyer36@foxmail.com
+**Source Code:** https://github.com/sawyer-shi/dify-plugins-mind_map.git
+**Support:** Available through Dify platform and GitHub Issues
+
+---
+
 ## 中文版本
 
 ### 概述
@@ -46,6 +91,7 @@
 
 **开发者：** [@sawyer-shi](https://github.com/sawyer-shi)
 **邮箱：** sawyer36@foxmail.com
+**项目代码来源：** https://github.com/sawyer-shi/dify-plugins-mind_map.git
 **支持：** 通过Dify平台和GitHub Issues提供
 
 ---
