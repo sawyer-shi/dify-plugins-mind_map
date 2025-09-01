@@ -45,7 +45,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 - **Author**: [@sawyer-shi](https://github.com/sawyer-shi)
 - **Email**: sawyer36@foxmail.com
-- **Source Code**: https://github.com/sawyer-shi/dify-plugins-mind_map.git
+- **Source Code**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **License**: MIT License
 - **Support**: Through Dify platform and GitHub Issues
 
@@ -92,7 +92,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 - **作者**: [@sawyer-shi](https://github.com/sawyer-shi)
 - **邮箱**: sawyer36@foxmail.com
-- **项目代码来源**: https://github.com/sawyer-shi/dify-plugins-mind_map.git
+- **项目代码来源**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **许可证**: MIT License
 - **支持**: 通过Dify平台和GitHub Issues
 
