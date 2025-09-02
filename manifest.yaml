@@ -1,4 +1,4 @@
-﻿version: 0.0.1
+﻿version: 0.0.2
 type: plugin
 author: sawyer-shi
 name: mind_map
@@ -15,7 +15,7 @@ plugins:
   tools:
     - provider/mind_map.yaml
 meta:
-  version: 0.0.1
+  version: 0.0.2
   author: sawyer-shi
   arch:
     - amd64

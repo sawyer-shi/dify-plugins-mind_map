@@ -227,9 +227,9 @@ class MindMapHorizontalTool(Tool):
             
             print(f"Drawing horizontal text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
             
-            # 字体大小 (水平布局略小) - 扩大一倍
-            base_font_size = 26
-            font_size = max(base_font_size - (depth_level * 3), 16)
+            # 字体大小 (水平布局略小) - 放大0.5倍
+            base_font_size = 39  # 26 * 1.5
+            font_size = max(base_font_size - (depth_level * 5), 24)
             
             # 加载字体
             font = None
@@ -254,12 +254,12 @@ class MindMapHorizontalTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # 绘制背景框 (水平布局样式) - 扩大一倍
-            padding = max(12 - depth_level * 2, 6)  # 稍微紧凑一些
+            # 绘制背景框 (水平布局样式) - 适应1.5倍字体
+            padding = max(15 - depth_level * 2, 8)  # 稍微紧凑一些
             if depth_level == 1:
-                border_width = 6
+                border_width = 4  # 合适大小
             else:
-                border_width = 4
+                border_width = 3  # 合适大小
             
             # 背景框坐标
             box_x1 = x - text_width // 2 - padding
@@ -271,9 +271,10 @@ class MindMapHorizontalTool(Tool):
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
                                  radius=4, fill='white', outline=color, width=border_width)
             
-            # 绘制文本
+            # 绘制文本 - 普通效果
             text_x = x - text_width // 2
             text_y = y - text_height // 2
+            # 使用普通绘制，不加粗
             draw.text((text_x, text_y), safe_text, font=font, fill=color)
             
             print(f"Successfully drew horizontal text: '{safe_text}'")
@@ -449,7 +450,7 @@ class MindMapHorizontalTool(Tool):
                     else:
                         branch_color = inherited_color
                     
-                    # Draw connection line with bounds checking - 线条缩小一倍
+                    # Draw connection line with bounds checking - 线条合适大小
                     line_thickness = max(2.5 - (depth_level * 0.2), 1)
                     
                     # Validate coordinates before drawing
@@ -559,10 +560,14 @@ class MindMapHorizontalTool(Tool):
                 temp_output_path = os.path.join(temp_dir, display_filename)
                 
                 # Parse Markdown to tree structure
+                print(f"Parsing horizontal markdown content: {markdown_content[:100]}...")
                 tree_data = self._parse_markdown_to_tree(markdown_content)
+                print(f"Parsed horizontal tree structure: {tree_data}")
                 
                 # Generate PNG mind map with PIL
+                print(f"Generating horizontal PNG mind map to: {temp_output_path}")
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
+                print(f"Horizontal generation result: {success}")
                 
                 if success and os.path.exists(temp_output_path):
                     # Read generated PNG file

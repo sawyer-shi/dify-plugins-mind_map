@@ -229,9 +229,9 @@ class MindMapCenterTool(Tool):
             
             print(f"Drawing text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
             
-            # 字体大小 - 扩大一倍
-            base_font_size = 28
-            font_size = max(base_font_size - (depth_level * 4), 16)
+            # 字体大小 - 放大0.5倍
+            base_font_size = 42  # 28 * 1.5
+            font_size = max(base_font_size - (depth_level * 6), 24)
             
             # 加载字体
             font = None
@@ -256,13 +256,13 @@ class MindMapCenterTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # 绘制背景框 - 扩大一倍
-            padding = max(16 - depth_level * 2, 8)
+            # 绘制背景框 - 适应1.5倍字体
+            padding = max(18 - depth_level * 2, 10)
             if depth_level == 1:
-                # 根节点使用更粗的边框
-                border_width = 6
-            else:
+                # 根节点使用更粗的边框 - 合适大小
                 border_width = 4
+            else:
+                border_width = 3
             
             # 背景框坐标
             box_x1 = x - text_width // 2 - padding
@@ -274,9 +274,10 @@ class MindMapCenterTool(Tool):
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
                                  radius=5, fill='white', outline=color, width=border_width)
             
-            # 绘制文本
+            # 绘制文本 - 普通效果
             text_x = x - text_width // 2
             text_y = y - text_height // 2
+            # 使用普通绘制，不加粗
             draw.text((text_x, text_y), safe_text, font=font, fill=color)
             
             print(f"Successfully drew text: '{safe_text}'")
@@ -450,7 +451,7 @@ class MindMapCenterTool(Tool):
                     else:
                         branch_color = inherited_color
                     
-                    # Draw connection line - 线条缩小一倍
+                    # Draw connection line - 线条合适大小
                     line_thickness = max(3 - depth_level * 0.5, 1)
                     draw_curved_branch_line(center_x, center_y, child_x, child_y, 
                                           color=branch_color, linewidth=line_thickness)
@@ -552,10 +553,14 @@ class MindMapCenterTool(Tool):
                 temp_output_path = os.path.join(temp_dir, display_filename)
                 
                 # Parse Markdown to tree structure
+                print(f"Parsing markdown content: {markdown_content[:100]}...")
                 tree_data = self._parse_markdown_to_tree(markdown_content)
+                print(f"Parsed tree structure: {tree_data}")
                 
                 # Generate PNG mind map with PIL
+                print(f"Generating PNG mind map to: {temp_output_path}")
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
+                print(f"Generation result: {success}")
                 
                 if success and os.path.exists(temp_output_path):
                     # Read generated PNG file
