@@ -249,10 +249,13 @@ class MindMapHorizontalTool(Tool):
                     print("Failed to load default font")
                     return
             
-            # 计算文本大小
+            # 精确计算文本大小和基线偏移
             bbox = draw.textbbox((0, 0), safe_text, font=font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
+            
+            # 获取字体度量信息以实现精确居中
+            ascent, descent = font.getmetrics()
             
             # 绘制背景框 (水平布局样式) - 适应1.5倍字体
             padding = max(15 - depth_level * 2, 8)  # 稍微紧凑一些
@@ -261,21 +264,38 @@ class MindMapHorizontalTool(Tool):
             else:
                 border_width = 3  # 合适大小
             
-            # 背景框坐标
-            box_x1 = x - text_width // 2 - padding
-            box_y1 = y - text_height // 2 - padding
-            box_x2 = x + text_width // 2 + padding
-            box_y2 = y + text_height // 2 + padding
+            # 精确的背景框坐标 - 基于真实文本尺寸
+            box_width = text_width + 2 * padding
+            box_height = text_height + 2 * padding
+            
+            box_x1 = x - box_width // 2
+            box_y1 = y - box_height // 2
+            box_x2 = x + box_width // 2
+            box_y2 = y + box_height // 2
             
             # 绘制圆角矩形背景
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
                                  radius=4, fill='white', outline=color, width=border_width)
             
-            # 绘制文本 - 普通效果
-            text_x = x - text_width // 2
-            text_y = y - text_height // 2
-            # 使用普通绘制，不加粗
-            draw.text((text_x, text_y), safe_text, font=font, fill=color)
+            # 使用PIL的anchor参数实现完美的文本居中
+            # anchor='mm' 表示以文本的中间点(middle-middle)作为定位点
+            # 这样可以确保文本在水平和垂直方向都完美居中
+            try:
+                # 使用anchor参数进行居中对齐（PIL 8.0.0+支持）
+                draw.text((x, y), safe_text, font=font, fill=color, anchor='mm')
+            except TypeError:
+                # 如果PIL版本较老，不支持anchor参数，则使用手动计算
+                # 精确的文本居中定位
+                text_x = x - text_width / 2
+                
+                # 垂直居中：使用字体基线信息进行精确计算
+                text_baseline_offset = bbox[1]  # 文本顶部相对于基线的偏移
+                text_visual_height = bbox[3] - bbox[1]  # 文本的视觉高度
+                text_visual_center_offset = text_baseline_offset + text_visual_height / 2
+                text_y = y - text_visual_center_offset
+                
+                # 使用精确坐标绘制文本
+                draw.text((text_x, text_y), safe_text, font=font, fill=color)
             
             print(f"Successfully drew horizontal text: '{safe_text}'")
             
