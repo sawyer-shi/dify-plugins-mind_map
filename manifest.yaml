@@ -11,6 +11,22 @@ description:
 icon: icon.png
 resource:
   memory: 104857600
+  permission:
+    model:
+      enabled: true
+      llm: true
+      text_embedding: false
+      rerank: false
+      tts: false
+      speech2text: false
+      moderation: false
+    endpoint:
+      enabled: true
+    app:
+      enabled: true
+    storage:
+      enabled: true
+      size: 104857600
 plugins:
   tools:
     - provider/mind_map.yaml
