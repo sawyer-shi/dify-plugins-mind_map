@@ -10,12 +10,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ### Version Information
 
-- **Current Version**: v0.0.2
-- **Release Date**: 2025-09-02
+- **Current Version**: v0.0.3
+- **Release Date**: 2025-10-14
 - **Compatibility**: Dify Plugin Framework
-- **Python Version**: 3.7+
+- **Python Version**: 3.12+
 
 #### Version History
+- **v0.0.3** (2025-10-14): Adjust font centering and interface display effects, and fix known bugs
 - **v0.0.2** (2025-09-02): Improved text rendering - removed bold effect while maintaining 1.5x font size for better readability
 - **v0.0.1** (2025-07-29): Initial release with dual layout support and perfect Chinese compatibility
 
@@ -53,6 +54,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 - **Author**: [@sawyer-shi](https://github.com/sawyer-shi)
 - **Email**: sawyer36@foxmail.com
 - **License**: MIT License
+- **Source Code**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **Support**: Through Dify platform and GitHub Issues
 
 ---
@@ -63,12 +65,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ### 版本信息
 
-- **当前版本**: v0.0.2
-- **发布日期**: 2025-09-02
+- **当前版本**: v0.0.3
+- **发布日期**: 2025-10-14
 - **兼容性**: Dify Plugin Framework
-- **Python版本**: 3.7+
+- **Python版本**: 3.12+
 
 #### 版本历史
+- **v0.0.3** (2025-10-14): 调整字体居中和界面显示效果，并修复已知bug
 - **v0.0.2** (2025-09-02): 改进文本渲染效果 - 移除加粗效果，保持1.5倍字体大小，提升可读性
 - **v0.0.1** (2025-07-29): 初始版本，支持双布局和完美中文兼容性
 
@@ -106,8 +109,9 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 - **作者**: [@sawyer-shi](https://github.com/sawyer-shi)
 - **邮箱**: sawyer36@foxmail.com
 - **许可证**: MIT License
+- **源码地址**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **支持**: 通过Dify平台和GitHub Issues
 
 ---
 
-**Ready to create beautiful mind maps? / 准备好创建精美的思维导图了吗？** 
+**Ready to create beautiful mind maps? / 准备好创建精美的思维导图了吗？**
