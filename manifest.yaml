@@ -1,5 +1,8 @@
 ﻿version: 0.0.3
 type: plugin
+tags: 
+  - productivity
+  - image
 author: sawyer-shi
 name: mind_map
 label:
