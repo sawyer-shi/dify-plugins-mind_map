@@ -1,5 +1,5 @@
 ﻿# Dify插件框架
-dify-plugin
+dify_plugin>=0.2.0
 
 # 图像处理和绘制
 Pillow>=8.0.0
