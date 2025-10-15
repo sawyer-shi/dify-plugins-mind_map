@@ -27,23 +27,23 @@ class MindMapHorizontalTool(Tool):
         try:
             from PIL import Image, ImageDraw, ImageFont
         except ImportError:
-            print("PIL/Pillow not available, using fallback")
+            # PIL/Pillow not available, using fallback
             return None
             
         import platform
         
         system = platform.system()
-        print(f"System: {system}")
+        # print(f"System: {system}")
         
         # 优先使用嵌入的字体文件
         embedded_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'chinese_font.ttc')
         embedded_font_path = os.path.abspath(embedded_font_path)
         
         if os.path.exists(embedded_font_path):
-            print(f"Found embedded Chinese font: {embedded_font_path}")
+            # print(f"Found embedded Chinese font: {embedded_font_path}")
             return embedded_font_path
         
-        print("Embedded font not found, trying system fonts...")
+        # print("Embedded font not found, trying system fonts...")
         
         # 查找系统中文字体文件（作为备用）
         font_file = None
@@ -58,7 +58,7 @@ class MindMapHorizontalTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    print(f"Found system Chinese font: {font_path}")
+                    # print(f"Found system Chinese font: {font_path}")
                     break
         elif system == 'Darwin':  # macOS
             font_paths = [
@@ -69,7 +69,7 @@ class MindMapHorizontalTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    print(f"Found system Chinese font: {font_path}")
+                    # print(f"Found system Chinese font: {font_path}")
                     break
         else:  # Linux
             font_paths = [
@@ -81,7 +81,7 @@ class MindMapHorizontalTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    print(f"Found system Chinese font: {font_path}")
+                    # print(f"Found system Chinese font: {font_path}")
                     break
         
         return font_file
@@ -213,6 +213,13 @@ class MindMapHorizontalTool(Tool):
             count += self._count_total_nodes(child)
         return count
 
+    def _get_all_nodes(self, node: dict) -> list:
+        """Get all nodes in the tree as a flat list"""
+        nodes = [node]
+        for child in node.get('children', []):
+            nodes.extend(self._get_all_nodes(child))
+        return nodes
+
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
         """
         使用PIL绘制中文文本，确保完美显示 (水平布局)
@@ -225,7 +232,7 @@ class MindMapHorizontalTool(Tool):
             if not safe_text:
                 safe_text = f"Node{depth_level}"
             
-            print(f"Drawing horizontal text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
+            # print(f"Drawing horizontal text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
             
             # 字体大小 (水平布局略小) - 放大0.5倍
             base_font_size = 39  # 26 * 1.5
@@ -236,17 +243,18 @@ class MindMapHorizontalTool(Tool):
             if font_file and os.path.exists(font_file):
                 try:
                     font = ImageFont.truetype(font_file, font_size)
-                    print(f"Loaded font from: {font_file}")
+                    # print(f"Loaded font from: {font_file}")
                 except Exception as e:
-                    print(f"Failed to load font: {e}")
+                    # print(f"Failed to load font: {e}")
+                    pass
             
             # 如果字体加载失败，使用默认字体
             if font is None:
                 try:
                     font = ImageFont.load_default()
-                    print("Using default font")
+                    # print("Using default font")
                 except:
-                    print("Failed to load default font")
+                    # print("Failed to load default font")
                     return
             
             # 精确计算文本大小和基线偏移
@@ -297,10 +305,10 @@ class MindMapHorizontalTool(Tool):
                 # 使用精确坐标绘制文本
                 draw.text((text_x, text_y), safe_text, font=font, fill=color)
             
-            print(f"Successfully drew horizontal text: '{safe_text}'")
+            # print(f"Successfully drew horizontal text: '{safe_text}'")
             
         except Exception as e:
-            print(f"PIL horizontal text drawing error: {e}")
+            # print(f"PIL horizontal text drawing error: {e}")
             # 最简单的回退方案
             try:
                 draw.text((x-10, y-5), f"Node{depth_level}", fill=color)
@@ -312,7 +320,7 @@ class MindMapHorizontalTool(Tool):
         Generate PNG mind map with PIL-based Chinese text rendering (Horizontal)
         """
         try:
-            print("Starting horizontal mind map generation with PIL...")
+            # print("Starting horizontal mind map generation with PIL...")
             
             # 设置PIL中文字体
             font_file = self._setup_pil_chinese_font(temp_dir)
@@ -331,9 +339,9 @@ class MindMapHorizontalTool(Tool):
                     fm.fontManager.addfont(font_file)
                     font_prop = fm.FontProperties(fname=font_file)
                     plt.rcParams['font.family'] = font_prop.get_name()
-                    print(f"Matplotlib configured with font: {font_file}")
+                    # print(f"Matplotlib configured with font: {font_file}")
                 except Exception as e:
-                    print(f"Failed to configure matplotlib font: {e}")
+                    # print(f"Failed to configure matplotlib font: {e}")
                     # 使用系统默认中文字体配置
                     plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
                     plt.rcParams['axes.unicode_minus'] = False
@@ -341,7 +349,7 @@ class MindMapHorizontalTool(Tool):
                 # 使用系统默认中文字体配置
                 plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
                 plt.rcParams['axes.unicode_minus'] = False
-                print("Using system default Chinese font configuration")
+                # print("Using system default Chinese font configuration")
             
             # Calculate canvas size for horizontal layout
             tree_depth = self._calculate_tree_depth(tree_data)
@@ -505,9 +513,9 @@ class MindMapHorizontalTool(Tool):
                     return start_y
 
             # Execute dynamic horizontal layout (只绘制线条，存储文本)
-            print("Starting layout...")
+            # print("Starting layout...")
             layout_dynamic_horizontal_mindmap(tree_data)
-            print("Layout complete")
+            # print("Layout complete")
             
             # 先保存matplotlib图像(只有线条)
             plt.tight_layout()
@@ -523,8 +531,8 @@ class MindMapHorizontalTool(Tool):
             # 获取图像尺寸用于坐标转换
             img_width, img_height = base_img.size
             
-            print(f"Base horizontal image size: {img_width}x{img_height}")
-            print(f"Text elements to draw: {len(text_elements)}")
+            # print(f"Base horizontal image size: {img_width}x{img_height}")
+            # print(f"Text elements to draw: {len(text_elements)}")
             
             # 坐标转换函数 (matplotlib坐标 -> PIL像素坐标)
             def transform_coords(x, y):
@@ -546,11 +554,11 @@ class MindMapHorizontalTool(Tool):
             # 保存最终图像
             base_img.save(output_file, 'PNG')
             
-            print(f"Horizontal mind map with PIL text generated: {output_file}")
+            # print(f"Horizontal mind map with PIL text generated: {output_file}")
             return True
             
         except Exception as e:
-            print(f"Mind map generation error: {str(e)}")
+            # print(f"Mind map generation error: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -580,14 +588,10 @@ class MindMapHorizontalTool(Tool):
                 temp_output_path = os.path.join(temp_dir, display_filename)
                 
                 # Parse Markdown to tree structure
-                print(f"Parsing horizontal markdown content: {markdown_content[:100]}...")
                 tree_data = self._parse_markdown_to_tree(markdown_content)
-                print(f"Parsed horizontal tree structure: {tree_data}")
                 
                 # Generate PNG mind map with PIL
-                print(f"Generating horizontal PNG mind map to: {temp_output_path}")
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
-                print(f"Horizontal generation result: {success}")
                 
                 if success and os.path.exists(temp_output_path):
                     # Read generated PNG file
@@ -599,20 +603,52 @@ class MindMapHorizontalTool(Tool):
                     size_mb = file_size / (1024 * 1024)
                     size_text = f"{size_mb:.2f}M"
                     
-                    yield self.create_blob_message(
+                    # Create blob message and get the file info
+                    blob_message = self.create_blob_message(
                         blob=png_data,
                         meta={'mime_type': 'image/png', 'filename': display_filename}
                     )
+                    
+                    # 准备JSON数据，包含文件URL信息
+                    json_data = {
+                        "layout_type": "horizontal",
+                        "file_size_mb": round(size_mb, 2),
+                        "tree_depth": self._calculate_tree_depth(tree_data),
+                        "total_nodes": len(self._get_all_nodes(tree_data)),
+                        "filename": display_filename,
+                        "generation_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "success": True,
+                        "file_info": {
+                            "type": "image",
+                            "mime_type": "image/png",
+                            "size": file_size,
+                            "filename": display_filename
+                        }
+                    }
+                    
+                    yield blob_message
                     yield self.create_text_message(f'Horizontal mind map generation successful! File size: {size_text}')
+                    yield self.create_json_message(json_data)
                 else:
+                    json_data = {
+                        "layout_type": "horizontal",
+                        "success": False,
+                        "error": "Unable to create image file"
+                    }
                     yield self.create_text_message('Horizontal mind map generation failed: Unable to create image file.')
+                    yield self.create_json_message(json_data)
         
         except Exception as e:
             error_msg = str(e)
-            print(f"Tool execution failed: {error_msg}")
+            json_data = {
+                "layout_type": "horizontal",
+                "success": False,
+                "error": error_msg
+            }
             yield self.create_text_message(f'Horizontal mind map generation failed: {error_msg}')
+            yield self.create_json_message(json_data)
 
 
 # Export tool class for Dify
 def get_tool():
-    return MindMapHorizontalTool 
+    return MindMapHorizontalTool
