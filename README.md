@@ -10,7 +10,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 - **Python Version**: 3.12+
 
 ### Version History
-- **v0.0.4** (2025-12-05): Updated Free Structure Layout to Smart Layout that automatically chooses between Center and Horizontal styles based on complexity
+- **v0.0.4** (2025-12-05): Added Free Structure Layout to Smart Layout that automatically chooses between Center and Horizontal styles based on complexity. Implemented anti-overlap algorithms for both Center and Horizontal layouts to fix element overlapping bugs.
 - **v0.0.3** (2025-10-14): Adjust font centering and interface display effects, and fix known bugs
 - **v0.0.2** (2025-09-02): Improved text rendering - removed bold effect while maintaining 1.5x font size for better readability
 - **v0.0.1** (2025-07-29): Initial release with dual layout support and perfect Chinese compatibility
