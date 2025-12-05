@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Horizontal Layout Mind Map Tool
-Generates left-to-right mind maps from Markdown text with PIL-based Chinese font support
-Supports unlimited dynamic hierarchical structures
+Generates optimized left-to-right mind maps from Markdown text.
+Features:
+- Overlap prevention using Subtree-Aware Layout Algorithm (Vertical)
+- Text-Width-Aware Horizontal Spacing (Horizontal Overlap Prevention)
+- Dynamic canvas expansion for complex trees
+- PIL-based Chinese font support
 """
 
 import os
@@ -27,23 +31,17 @@ class MindMapHorizontalTool(Tool):
         try:
             from PIL import Image, ImageDraw, ImageFont
         except ImportError:
-            # PIL/Pillow not available, using fallback
             return None
             
         import platform
-        
         system = platform.system()
-        # print(f"System: {system}")
         
         # 优先使用嵌入的字体文件
         embedded_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'chinese_font.ttc')
         embedded_font_path = os.path.abspath(embedded_font_path)
         
         if os.path.exists(embedded_font_path):
-            # print(f"Found embedded Chinese font: {embedded_font_path}")
             return embedded_font_path
-        
-        # print("Embedded font not found, trying system fonts...")
         
         # 查找系统中文字体文件（作为备用）
         font_file = None
@@ -54,11 +52,9 @@ class MindMapHorizontalTool(Tool):
                 r'C:\Windows\Fonts\simhei.ttf',    # 黑体
                 r'C:\Windows\Fonts\simsun.ttc',    # 宋体
             ]
-            
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    # print(f"Found system Chinese font: {font_path}")
                     break
         elif system == 'Darwin':  # macOS
             font_paths = [
@@ -69,7 +65,6 @@ class MindMapHorizontalTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    # print(f"Found system Chinese font: {font_path}")
                     break
         else:  # Linux
             font_paths = [
@@ -81,23 +76,18 @@ class MindMapHorizontalTool(Tool):
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     font_file = font_path
-                    # print(f"Found system Chinese font: {font_path}")
                     break
         
         return font_file
     
     def _parse_markdown_to_tree(self, markdown_text: str) -> dict:
         """
-        Universal Markdown parser - supports unlimited dynamic hierarchical structures:
-        - Any number of header levels (# ## ### #### ##### ######)
-        - Any number of list nesting levels with proper indentation
-        - Mixed content types and structures
-        - Completely dynamic and flexible
+        Universal Markdown parser
         """
         lines = markdown_text.strip().split('\n')
         nodes = []
         node_stack = []
-        last_header_level = 0  # Track the last header level for proper list nesting
+        last_header_level = 0
         
         for line in lines:
             line = line.rstrip()
@@ -108,7 +98,6 @@ class MindMapHorizontalTool(Tool):
             content = ""
             is_header = False
             
-            # Handle headers (# ## ### #### ##### ######) - unlimited levels
             if line.startswith('#'):
                 header_count = 0
                 for char in line:
@@ -119,28 +108,20 @@ class MindMapHorizontalTool(Tool):
                 level = header_count
                 content = line[header_count:].strip()
                 is_header = True
-                last_header_level = level  # Remember this header level
+                last_header_level = level
                 
-            # Handle numbered lists (1. 2. 3. etc) with unlimited indentation
             elif re.match(r'^\s*\d+\.\s+', line):
                 leading_spaces = len(line) - len(line.lstrip())
-                level = leading_spaces // 2 + 2  # Convert indentation to level
-                # Extract content after number, remove markdown formatting
+                level = leading_spaces // 2 + 2
                 content = re.sub(r'^\s*\d+\.\s*', '', line)
                 content = self._clean_markdown_text(content)
                 
-            # Handle bullet lists (- * +) with unlimited indentation  
             elif re.match(r'^\s*[-\*\+]\s+', line):
                 leading_spaces = len(line) - len(line.lstrip())
-                
-                # Special handling: if no indentation and we just had a header, 
-                # make list items children of that header
                 if leading_spaces == 0 and last_header_level > 0:
-                    level = last_header_level + 1  # One level deeper than the last header
+                    level = last_header_level + 1
                 else:
-                    level = leading_spaces // 2 + 2  # Convert indentation to level
-                    
-                # Extract content after bullet, handle **Bold**: pattern
+                    level = leading_spaces // 2 + 2
                 content = re.sub(r'^\s*[-\*\+]\s*', '', line)
                 content = self._clean_markdown_text(content)
                 
@@ -150,38 +131,31 @@ class MindMapHorizontalTool(Tool):
             if not content:
                 continue
                 
-            # Create node
             node = {
                 'content': content,
                 'level': level,
                 'children': []
             }
             
-            # Reset last_header_level if this is not a list following a header
             if not is_header and not re.match(r'^\s*[-\*\+]\s+', line):
                 last_header_level = 0
             
-            # Adjust stack - remove nodes with level >= current level
             while node_stack and node_stack[-1]['level'] >= level:
                 node_stack.pop()
             
-            # Add to correct parent
             if node_stack:
                 node_stack[-1]['children'].append(node)
             else:
                 nodes.append(node)
             
-            # Push current node to stack
             node_stack.append(node)
         
-        # Handle results
         if not nodes:
             return {'content': 'Mind Map', 'level': 1, 'children': []}
             
         if len(nodes) == 1:
             return nodes[0]
         
-        # Multiple root nodes - create wrapper
         return {
             'content': 'Mind Map',
             'level': 1, 
@@ -189,90 +163,273 @@ class MindMapHorizontalTool(Tool):
         }
 
     def _clean_markdown_text(self, text: str) -> str:
-        """Clean markdown formatting from text"""
-        # Remove **bold** formatting
         text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
-        # Remove *italic* formatting  
         text = re.sub(r'\*(.*?)\*', r'\1', text)
-        # Remove 《》 brackets
         text = text.replace('《', '').replace('》', '')
-        # Handle **Bold**: pattern - keep the colon
         text = re.sub(r'\*\*(.*?)\*\*:\s*', r'\1: ', text)
         return text.strip()
 
     def _calculate_tree_depth(self, node: dict) -> int:
-        """Calculate the maximum depth of the tree structure"""
         if not node.get('children'):
             return 1
         return 1 + max(self._calculate_tree_depth(child) for child in node['children'])
 
-    def _count_total_nodes(self, node: dict) -> int:
-        """Count total nodes in the tree"""
-        count = 1
-        for child in node.get('children', []):
-            count += self._count_total_nodes(child)
-        return count
-
     def _get_all_nodes(self, node: dict) -> list:
-        """Get all nodes in the tree as a flat list"""
         nodes = [node]
         for child in node.get('children', []):
             nodes.extend(self._get_all_nodes(child))
         return nodes
+    
+    def _estimate_text_width(self, text: str, depth_level: int) -> float:
+        """
+        Estimate text width in coordinate units.
+        This maps text length + font size to our abstract coordinate system.
+        """
+        # Base unit reference:
+        # In _assign_coordinates, x_step was ~3.5 + len*0.05
+        # Let's make this more precise.
+        # Assume 1 coordinate unit ≈ 40 pixels (just a reference scale)
+        
+        # Rough character width estimation
+        # Chinese/Wide chars: 1.0 width
+        # ASCII/Narrow chars: 0.6 width
+        width_score = 0
+        for char in text:
+            if ord(char) > 127:
+                width_score += 1.0
+            else:
+                width_score += 0.6
+        
+        # Font scale factor decreases with depth
+        # Level 1: Scale 1.0
+        # Level 2: Scale 0.9
+        # ...
+        scale = max(1.0 - (depth_level - 1) * 0.1, 0.6)
+        
+        # Convert to coordinate units
+        # Factor 0.4 found by experimentation to match visual look
+        estimated_width = width_score * scale * 0.4 
+        
+        # Add padding (box borders)
+        estimated_width += 0.8  # Padding
+        
+        return estimated_width
+
+    def _calculate_subtree_layout_data(self, node: dict, depth_level: int = 1) -> float:
+        """
+        Pass 1: Calculate vertical height AND estimate horizontal width for each node.
+        """
+        children = node.get('children', [])
+        content = node.get('content', 'Node')
+        
+        # Calculate and store self width
+        node['_width'] = self._estimate_text_width(content, depth_level)
+        
+        # Basic height unit
+        base_node_height = 1.0
+        
+        if not children:
+            node['_subtree_height'] = base_node_height
+            return base_node_height
+            
+        children_total_height = 0
+        for child in children:
+            children_total_height += self._calculate_subtree_layout_data(child, depth_level + 1)
+            
+        gap = 0.6 
+        if len(children) > 1:
+            children_total_height += (len(children) - 1) * gap
+            
+        node['_subtree_height'] = max(base_node_height, children_total_height)
+        return node['_subtree_height']
+
+    def _assign_coordinates_to_tree(self, node, x, y_center, branch_colors, inherited_color, depth_level):
+        """
+        Pass 2: Assign coordinates using variable width for precise spacing.
+        """
+        children = node.get('children', [])
+        
+        if depth_level == 1:
+            color = '#333333'
+        else:
+            color = inherited_color
+            
+        node['x'] = x
+        node['y'] = y_center
+        node['depth'] = depth_level
+        node['color'] = color
+        
+        if not children:
+            return
+            
+        # Calculate X position for children based on parent's actual width
+        # We need: Parent Half Width + Connector Length + Child Half Width (variable)
+        # Simplified: Parent Right Edge + Gap
+        
+        parent_width = node['_width']
+        connector_length = 2.0 # Fixed minimum length for the curved line
+        
+        # X coordinate is center-based? 
+        # No, let's assume 'x' is the center of the node to be consistent with previous logic.
+        
+        # Child X should be:
+        # Parent X + Parent Half Width + Connector + Child Half Width?
+        # Since child widths vary, we can't set a single 'child_x' for all children if we want them perfectly aligned left.
+        # Usually in mind maps, children are aligned to a specific "Level X".
+        # To do this, we need the MAX width of the parent level? No, that wastes space.
+        # Or we just align all children to: Parent X + Parent Half Width + Connector + Max Sibling Half Width?
+        # Let's stick to: All children of this node start at the same X for neatness.
+        # That X is determined by the Parent's width.
+        
+        # Distance to children column
+        # Since children are left-aligned (or center-aligned in their column?)
+        # Let's align children's CENTERS.
+        # To avoid overlap, we need to know the widest child?
+        # Or simpler: Just push them out enough.
+        
+        # Let's try:
+        # child_start_x = x + (parent_width / 2) + connector_length
+        # But children also have widths. If we just place them at child_start_x, 
+        # a wide child might overlap back? No, x is center.
+        
+        # Let's calculate the maximum width among all children to decide a safe "column center" for them?
+        # This makes the layout look like columns.
+        max_child_width = 0
+        for child in children:
+            max_child_width = max(max_child_width, child['_width'])
+            
+        # Place children at:
+        # x (parent center) + parent_width/2 (edge) + connector + max_child_width/2 (child center)
+        # This ensures even the widest child doesn't overlap the parent layer.
+        
+        # Optimization:
+        # Instead of max_child_width, we can just use a fixed "safe" offset if we assume 
+        # the connector is long enough. 
+        # But the user complained about overlap. 
+        # So using specific widths is better.
+        
+        dist_to_children = (parent_width / 2) + connector_length + (max_child_width / 2)
+        
+        # Limit the visual gap. If a child is super wide, we don't want the connector to be huge for small children.
+        # But for neatness, a straight vertical alignment of children is preferred.
+        # Let's trust the column approach.
+        
+        child_x = x + dist_to_children
+        
+        # Calc Y positions
+        total_children_height = sum(c['_subtree_height'] for c in children)
+        gap = 0.6
+        if len(children) > 1:
+            total_children_height += (len(children) - 1) * gap
+            
+        current_y = y_center + total_children_height / 2
+        
+        for i, child in enumerate(children):
+            child_height = child['_subtree_height']
+            child_y_center = current_y - child_height / 2
+            
+            if depth_level == 1:
+                child_color = branch_colors[i % len(branch_colors)]
+            else:
+                child_color = color
+                
+            self._assign_coordinates_to_tree(child, child_x, child_y_center, 
+                                           branch_colors, child_color, depth_level + 1)
+            
+            current_y -= (child_height + gap)
+
+    def _get_all_nodes_with_coords(self, node):
+        """Flatten tree to list, ensuring coords exist"""
+        if 'x' not in node:
+            return []
+        nodes = [node]
+        for child in node.get('children', []):
+            nodes.extend(self._get_all_nodes_with_coords(child))
+        return nodes
+
+    def _draw_lines_recursive(self, ax, node):
+        children = node.get('children', [])
+        if not children:
+            return
+            
+        start_x, start_y = node['x'], node['y']
+        # Line starts from right edge of parent text box
+        # We need accurate box width again
+        parent_width = node['_width']
+        line_start_x = start_x + (parent_width / 2)
+        
+        for child in children:
+            end_x, end_y = child['x'], child['y']
+            child_width = child['_width']
+            line_end_x = end_x - (child_width / 2)
+            
+            color = child['color']
+            linewidth = max(3 - child['depth'] * 0.3, 1)
+            
+            # Draw bezier
+            self._draw_bezier_curve(ax, line_start_x, start_y, line_end_x, end_y, color, linewidth)
+            
+            # Recurse
+            self._draw_lines_recursive(ax, child)
+
+    def _draw_bezier_curve(self, ax, start_x, start_y, end_x, end_y, color, linewidth):
+        import numpy as np
+        
+        dist = math.sqrt((end_x - start_x)**2 + (end_y - start_y)**2)
+        # Control points
+        # Adjust based on horizontal distance
+        h_dist = abs(end_x - start_x)
+        cp_dist = min(h_dist * 0.6, 4.0)
+        
+        cp1_x = start_x + cp_dist
+        cp1_y = start_y
+        
+        cp2_x = end_x - cp_dist
+        cp2_y = end_y
+        
+        t = np.linspace(0, 1, 50)
+        x = (1-t)**3 * start_x + 3*(1-t)**2*t * cp1_x + 3*(1-t)*t**2 * cp2_x + t**3 * end_x
+        y = (1-t)**3 * start_y + 3*(1-t)**2*t * cp1_y + 3*(1-t)*t**2 * cp2_y + t**3 * end_y
+        
+        ax.plot(x, y, color=color, linewidth=linewidth, alpha=0.7)
 
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
         """
-        使用PIL绘制中文文本，确保完美显示 (水平布局)
+        Draw text using PIL with high quality rendering
         """
         try:
-            from PIL import ImageFont, ImageDraw
+            from PIL import ImageFont
             
-            # 简化文本处理
             safe_text = str(text).strip()
             if not safe_text:
-                safe_text = f"Node{depth_level}"
+                safe_text = f"Node"
             
-            # print(f"Drawing horizontal text with PIL: '{safe_text}' at ({x:.0f}, {y:.0f})")
+            # Dynamic font size
+            base_font_size = 40
+            font_size = max(base_font_size - (depth_level * 4), 24)
             
-            # 字体大小 (水平布局略小) - 放大0.5倍
-            base_font_size = 39  # 26 * 1.5
-            font_size = max(base_font_size - (depth_level * 5), 24)
-            
-            # 加载字体
             font = None
             if font_file and os.path.exists(font_file):
                 try:
                     font = ImageFont.truetype(font_file, font_size)
-                    # print(f"Loaded font from: {font_file}")
-                except Exception as e:
-                    # print(f"Failed to load font: {e}")
+                except Exception:
                     pass
             
-            # 如果字体加载失败，使用默认字体
             if font is None:
                 try:
                     font = ImageFont.load_default()
-                    # print("Using default font")
                 except:
-                    # print("Failed to load default font")
                     return
             
-            # 精确计算文本大小和基线偏移
+            # Measure text
             bbox = draw.textbbox((0, 0), safe_text, font=font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # 获取字体度量信息以实现精确居中
-            ascent, descent = font.getmetrics()
+            # Padding
+            padding = max(16 - depth_level * 2, 10)
+            border_width = 4 if depth_level == 1 else 3
             
-            # 绘制背景框 (水平布局样式) - 适应1.5倍字体
-            padding = max(15 - depth_level * 2, 8)  # 稍微紧凑一些
-            if depth_level == 1:
-                border_width = 4  # 合适大小
-            else:
-                border_width = 3  # 合适大小
-            
-            # 精确的背景框坐标 - 基于真实文本尺寸
             box_width = text_width + 2 * padding
             box_height = text_height + 2 * padding
             
@@ -281,48 +438,27 @@ class MindMapHorizontalTool(Tool):
             box_x2 = x + box_width // 2
             box_y2 = y + box_height // 2
             
-            # 绘制圆角矩形背景
+            # Draw background
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                 radius=4, fill='white', outline=color, width=border_width)
+                                 radius=6, fill='white', outline=color, width=border_width)
             
-            # 使用PIL的anchor参数实现完美的文本居中
-            # anchor='mm' 表示以文本的中间点(middle-middle)作为定位点
-            # 这样可以确保文本在水平和垂直方向都完美居中
+            # Draw text centered
             try:
-                # 使用anchor参数进行居中对齐（PIL 8.0.0+支持）
                 draw.text((x, y), safe_text, font=font, fill=color, anchor='mm')
             except TypeError:
-                # 如果PIL版本较老，不支持anchor参数，则使用手动计算
-                # 精确的文本居中定位
                 text_x = x - text_width / 2
-                
-                # 垂直居中：使用字体基线信息进行精确计算
-                text_baseline_offset = bbox[1]  # 文本顶部相对于基线的偏移
-                text_visual_height = bbox[3] - bbox[1]  # 文本的视觉高度
-                text_visual_center_offset = text_baseline_offset + text_visual_height / 2
-                text_y = y - text_visual_center_offset
-                
-                # 使用精确坐标绘制文本
+                text_y = y - (bbox[1] + text_height / 2)
                 draw.text((text_x, text_y), safe_text, font=font, fill=color)
-            
-            # print(f"Successfully drew horizontal text: '{safe_text}'")
-            
-        except Exception as e:
-            # print(f"PIL horizontal text drawing error: {e}")
-            # 最简单的回退方案
-            try:
-                draw.text((x-10, y-5), f"Node{depth_level}", fill=color)
-            except:
-                pass
+                
+        except Exception:
+            pass
 
     def _generate_png_mindmap(self, tree_data: dict, output_file: str, temp_dir: str) -> bool:
         """
-        Generate PNG mind map with PIL-based Chinese text rendering (Horizontal)
+        Generate PNG mind map using optimized layout engine
         """
         try:
-            # print("Starting horizontal mind map generation with PIL...")
-            
-            # 设置PIL中文字体
+            # Setup fonts
             font_file = self._setup_pil_chinese_font(temp_dir)
             
             import matplotlib
@@ -331,234 +467,94 @@ class MindMapHorizontalTool(Tool):
             import numpy as np
             from PIL import Image, ImageDraw
             
-            # 配置matplotlib中文字体
-            import matplotlib.font_manager as fm
-            if font_file and os.path.exists(font_file):
-                try:
-                    # 添加字体到matplotlib
-                    fm.fontManager.addfont(font_file)
-                    font_prop = fm.FontProperties(fname=font_file)
-                    plt.rcParams['font.family'] = font_prop.get_name()
-                    # print(f"Matplotlib configured with font: {font_file}")
-                except Exception as e:
-                    # print(f"Failed to configure matplotlib font: {e}")
-                    # 使用系统默认中文字体配置
-                    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-                    plt.rcParams['axes.unicode_minus'] = False
-            else:
-                # 使用系统默认中文字体配置
-                plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-                plt.rcParams['axes.unicode_minus'] = False
-                # print("Using system default Chinese font configuration")
+            # 1. Calc heights AND widths
+            self._calculate_subtree_layout_data(tree_data)
             
-            # Calculate canvas size for horizontal layout
-            tree_depth = self._calculate_tree_depth(tree_data)
-            total_nodes = self._count_total_nodes(tree_data)
-            
-            base_width = 16
-            base_height = 10
-            max_width = 24
-            max_height = 14
-            
-            width = min(base_width + (tree_depth * 3), max_width)
-            height = min(base_height + (total_nodes * 0.3), max_height)
-            
-            fig, ax = plt.subplots(1, 1, figsize=(width, height))
-            
-            # Set axis limits for horizontal layout
-            max_x_limit = 12
-            max_y_limit = 8
-            x_limit = min(max_x_limit, max(10, tree_depth * 3))
-            y_limit = min(max_y_limit, max(6, total_nodes // 4))
-            
-            ax.set_xlim(-3, x_limit)
-            ax.set_ylim(-y_limit, y_limit)
-            ax.axis('off')
-            
-            # Color palette
+            # 2. Assign Coordinates (Store in tree nodes)
             branch_colors = [
                 '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
                 '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
             ]
+            self._assign_coordinates_to_tree(tree_data, 0, 0, branch_colors, '#333333', 1)
             
-            # 存储文本信息，稍后用PIL绘制
-            text_elements = []
+            # 3. Collect nodes for determining canvas size
+            all_nodes = self._get_all_nodes_with_coords(tree_data)
+            if not all_nodes:
+                return False
             
-            def draw_curved_branch_line(start_x, start_y, end_x, end_y, color='#333333', linewidth=3):
-                """Draw smooth curved branch line optimized for horizontal layout"""
-                if abs(start_x - end_x) < 0.01 and abs(start_y - end_y) < 0.01:
-                    return
-                
-                dx = end_x - start_x
-                dy = end_y - start_y
-                distance = math.sqrt(dx*dx + dy*dy)
-                
-                if distance < 0.1:
-                    ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=linewidth, alpha=0.8)
-                    return
-                
-                control_distance = min(distance * 0.3, 1.5)
-                
-                # For horizontal layout, prioritize smooth horizontal curves
-                cp1_x = start_x + control_distance
-                cp1_y = start_y + dy * 0.3
-                cp2_x = end_x - control_distance * 0.5
-                cp2_y = end_y - dy * 0.3
-                
-                t = np.linspace(0, 1, 40)
-                curve_x = (1-t)**3 * start_x + 3*(1-t)**2*t * cp1_x + 3*(1-t)*t**2 * cp2_x + t**3 * end_x
-                curve_y = (1-t)**3 * start_y + 3*(1-t)**2*t * cp1_y + 3*(1-t)*t**2 * cp2_y + t**3 * end_y
-                
-                ax.plot(curve_x, curve_y, color=color, linewidth=linewidth, alpha=0.8)
+            # Calculate exact bounding box including text widths
+            min_x = float('inf')
+            max_x = float('-inf')
+            min_y = float('inf')
+            max_y = float('-inf')
             
-            def store_text_element(x, y, text, depth_level, color='#333333'):
-                """Store text element for later PIL rendering"""
-                text_elements.append({
-                    'x': x, 'y': y, 'text': text, 
-                    'depth_level': depth_level, 'color': color
-                })
-
-            def layout_dynamic_horizontal_mindmap(node, start_x=-2, start_y=0, depth_level=1, 
-                                                available_height=None, inherited_color='#333333'):
-                """Dynamic horizontal layout with color consistency"""
-                root_content = node.get('content', 'Root')
-                children = node.get('children', [])
+            for n in all_nodes:
+                half_w = n['_width'] / 2
+                # Height is roughly fixed/estimated as 1.0 unit for calculation
+                half_h = 0.5 
                 
-                # Calculate available height for this subtree if not provided
-                if available_height is None:
-                    available_height = y_limit * 2
-                
-                # Color assignment
-                if depth_level == 1:
-                    node_color = '#333333'
-                else:
-                    node_color = inherited_color
-                
-                # Store text element for PIL rendering
-                store_text_element(start_x, start_y, root_content, depth_level, node_color)
-                
-                if not children:
-                    return start_y
-                
-                child_count = len(children)
-                
-                # More compact horizontal spacing
-                base_x_spacing = 3.0
-                x_spacing = base_x_spacing + (depth_level * 0.5)
-                next_x = start_x + x_spacing
-                
-                # Ensure next_x doesn't exceed bounds
-                if next_x > x_limit - 1:
-                    next_x = x_limit - 1
-                
-                # More compact vertical spacing
-                if child_count == 1:
-                    child_positions = [start_y]
-                else:
-                    max_vertical_spacing = min(available_height / max(child_count, 1), 4.0)
-                    vertical_spacing = min(max_vertical_spacing, 3.0)
-                    
-                    # Calculate starting Y position to center the children
-                    total_height = (child_count - 1) * vertical_spacing
-                    start_child_y = start_y + total_height / 2
-                    
-                    child_positions = [start_child_y - i * vertical_spacing for i in range(child_count)]
-                    
-                    # Ensure all positions are within bounds
-                    child_positions = [max(-y_limit + 0.5, min(y_limit - 0.5, pos)) for pos in child_positions]
-                
-                # Track the actual Y range used by children
-                min_child_y = float('inf')
-                max_child_y = float('-inf')
-                
-                for i, (child, child_y) in enumerate(zip(children, child_positions)):
-                    # Color assignment
-                    if depth_level == 1:
-                        branch_color = branch_colors[i % len(branch_colors)]
-                    else:
-                        branch_color = inherited_color
-                    
-                    # Draw connection line with bounds checking - 线条合适大小
-                    line_thickness = max(2.5 - (depth_level * 0.2), 1)
-                    
-                    # Validate coordinates before drawing
-                    if (abs(start_x - next_x) > 0.01 or abs(start_y - child_y) > 0.01) and \
-                       (-3 <= start_x <= x_limit) and (-3 <= next_x <= x_limit) and \
-                       (-y_limit <= start_y <= y_limit) and (-y_limit <= child_y <= y_limit):
-                        draw_curved_branch_line(start_x, start_y, next_x, child_y,
-                                              color=branch_color, linewidth=line_thickness)
-                    
-                    # Calculate available height for child subtree
-                    child_height = max(vertical_spacing * 0.8, 1.0) if child_count > 1 else available_height * 0.6
-                    
-                    # Recursive layout
-                    if next_x < x_limit - 0.5:
-                        actual_child_y = layout_dynamic_horizontal_mindmap(
-                            child, next_x, child_y, depth_level + 1, child_height, branch_color
-                        )
-                        
-                        # Track Y range
-                        min_child_y = min(min_child_y, actual_child_y)
-                        max_child_y = max(max_child_y, actual_child_y)
-                    else:
-                        # No space for recursion, store the child text element for PIL rendering
-                        store_text_element(next_x, child_y, child.get('content', 'Node'), depth_level + 1, branch_color)
-                        min_child_y = min(min_child_y, child_y)
-                        max_child_y = max(max_child_y, child_y)
-                
-                # Return the center Y position of all children
-                if min_child_y != float('inf') and max_child_y != float('-inf'):
-                    return (min_child_y + max_child_y) / 2
-                else:
-                    return start_y
-
-            # Execute dynamic horizontal layout (只绘制线条，存储文本)
-            # print("Starting layout...")
-            layout_dynamic_horizontal_mindmap(tree_data)
-            # print("Layout complete")
+                min_x = min(min_x, n['x'] - half_w)
+                max_x = max(max_x, n['x'] + half_w)
+                min_y = min(min_y, n['y'] - half_h)
+                max_y = max(max_y, n['y'] + half_h)
             
-            # 先保存matplotlib图像(只有线条)
-            plt.tight_layout()
-            temp_base_file = os.path.join(temp_dir, "base_horizontal_mindmap.png")
-            plt.savefig(temp_base_file, dpi=150, bbox_inches='tight',
-                       facecolor='white', edgecolor='none', format='png')
+            # Add margins
+            margin_x = 2.0
+            margin_y = 1.5
+            content_width = max_x - min_x + 2 * margin_x
+            content_height = max_y - min_y + 2 * margin_y
+            
+            content_width = max(content_width, 12)
+            content_height = max(content_height, 8)
+            
+            # Use a reasonable scale
+            fig_width = content_width * 0.8
+            fig_height = content_height * 0.8
+            
+            # Limit max size for safety
+            if fig_width > 200: fig_width = 200
+            if fig_height > 200: fig_height = 200
+            
+            plt.close('all')
+            fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), dpi=100)
+            ax.set_xlim(min_x - margin_x, max_x + margin_x)
+            ax.set_ylim(min_y - margin_y, max_y + margin_y)
+            ax.axis('off')
+            
+            # 4. Draw Lines
+            self._draw_lines_recursive(ax, tree_data)
+            
+            # 5. Save Base Image
+            plt.tight_layout(pad=0)
+            ax.set_position([0, 0, 1, 1])
+            
+            temp_base_file = os.path.join(temp_dir, "base_horizontal.png")
+            plt.savefig(temp_base_file, dpi=100, facecolor='white', edgecolor='none')
             plt.close()
             
-            # 使用PIL加载matplotlib生成的基础图像
+            # 6. Draw Text with PIL
             base_img = Image.open(temp_base_file)
             draw = ImageDraw.Draw(base_img)
+            img_w, img_h = base_img.size
             
-            # 获取图像尺寸用于坐标转换
-            img_width, img_height = base_img.size
+            x_range = (max_x + margin_x) - (min_x - margin_x)
+            y_range = (max_y + margin_y) - (min_y - margin_y)
             
-            # print(f"Base horizontal image size: {img_width}x{img_height}")
-            # print(f"Text elements to draw: {len(text_elements)}")
-            
-            # 坐标转换函数 (matplotlib坐标 -> PIL像素坐标)
-            def transform_coords(x, y):
-                # x: [-3, x_limit] -> [0, img_width]
-                # y: [-y_limit, y_limit] -> [0, img_height] (注意Y轴翻转)
-                pixel_x = int((x + 3) / (x_limit + 3) * img_width)
-                pixel_y = int((y_limit - y) / (2 * y_limit) * img_height)
-                return pixel_x, pixel_y
-            
-            # 使用PIL绘制所有文本元素
-            for element in text_elements:
-                pixel_x, pixel_y = transform_coords(element['x'], element['y'])
-                self._draw_text_with_pil(
-                    base_img, draw, pixel_x, pixel_y,
-                    element['text'], element['depth_level'], 
-                    element['color'], font_file
-                )
-            
-            # 保存最终图像
+            def to_px(x, y):
+                px = (x - (min_x - margin_x)) / x_range * img_w
+                py = img_h - (y - (min_y - margin_y)) / y_range * img_h
+                return px, py
+                
+            for node in all_nodes:
+                px, py = to_px(node['x'], node['y'])
+                self._draw_text_with_pil(base_img, draw, px, py, 
+                                       node['content'], node['depth'], 
+                                       node['color'], font_file)
+                                       
             base_img.save(output_file, 'PNG')
-            
-            # print(f"Horizontal mind map with PIL text generated: {output_file}")
             return True
             
         except Exception as e:
-            # print(f"Mind map generation error: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -568,87 +564,55 @@ class MindMapHorizontalTool(Tool):
         Invoke horizontal layout mind map generation
         """
         try:
-            # Get parameters
             markdown_content = tool_parameters.get('markdown_content', '').strip()
             filename = tool_parameters.get('filename', '').strip()
             
             if not markdown_content:
-                yield self.create_text_message('Horizontal mind map generation failed: No Markdown content provided.')
+                yield self.create_text_message('Generation failed: No Markdown content.')
                 return
             
-            # Handle filename
             display_filename = filename if filename else f"mindmap_horizontal_{int(time.time())}"
             display_filename = re.sub(r'[^\w\-_\.]', '_', display_filename)
-            
             if not display_filename.endswith('.png'):
                 display_filename += '.png'
             
-            # Create temporary directory
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_output_path = os.path.join(temp_dir, display_filename)
                 
-                # Parse Markdown to tree structure
                 tree_data = self._parse_markdown_to_tree(markdown_content)
                 
-                # Generate PNG mind map with PIL
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
                 
                 if success and os.path.exists(temp_output_path):
-                    # Read generated PNG file
                     with open(temp_output_path, 'rb') as f:
                         png_data = f.read()
                     
-                    # Calculate file size in MB
                     file_size = len(png_data)
                     size_mb = file_size / (1024 * 1024)
                     size_text = f"{size_mb:.2f}M"
                     
-                    # Create blob message and get the file info
                     blob_message = self.create_blob_message(
                         blob=png_data,
                         meta={'mime_type': 'image/png', 'filename': display_filename}
                     )
                     
-                    # 准备JSON数据，包含文件URL信息
                     json_data = {
-                        "layout_type": "horizontal",
+                        "layout_type": "horizontal_optimized",
                         "file_size_mb": round(size_mb, 2),
                         "tree_depth": self._calculate_tree_depth(tree_data),
                         "total_nodes": len(self._get_all_nodes(tree_data)),
                         "filename": display_filename,
-                        "generation_time": time.strftime("%Y-%m-%d %H:%M:%S"),
-                        "success": True,
-                        "file_info": {
-                            "type": "image",
-                            "mime_type": "image/png",
-                            "size": file_size,
-                            "filename": display_filename
-                        }
+                        "success": True
                     }
                     
                     yield blob_message
-                    yield self.create_text_message(f'Horizontal mind map generation successful! File size: {size_text}')
+                    yield self.create_text_message(f'Horizontal mind map generated successfully! Size: {size_text}')
                     yield self.create_json_message(json_data)
                 else:
-                    json_data = {
-                        "layout_type": "horizontal",
-                        "success": False,
-                        "error": "Unable to create image file"
-                    }
-                    yield self.create_text_message('Horizontal mind map generation failed: Unable to create image file.')
-                    yield self.create_json_message(json_data)
+                    yield self.create_text_message('Generation failed: Unable to create image file.')
         
         except Exception as e:
-            error_msg = str(e)
-            json_data = {
-                "layout_type": "horizontal",
-                "success": False,
-                "error": error_msg
-            }
-            yield self.create_text_message(f'Horizontal mind map generation failed: {error_msg}')
-            yield self.create_json_message(json_data)
+            yield self.create_text_message(f'Generation failed: {str(e)}')
 
-
-# Export tool class for Dify
 def get_tool():
     return MindMapHorizontalTool
