@@ -604,46 +604,85 @@ class MindMapFreeTool(Tool):
         Invoke free structure mind map generation
         """
         try:
+            # Get parameters
             markdown_content = tool_parameters.get('markdown_content', '').strip()
             filename = tool_parameters.get('filename', '').strip()
             
             if not markdown_content:
-                yield self.create_text_message('Free mind map generation failed: No content.')
+                yield self.create_text_message('Free mind map generation failed: No Markdown content provided.')
                 return
             
+            # Handle filename
             display_filename = filename if filename else f"mindmap_free_{int(time.time())}"
             display_filename = re.sub(r'[^\w\-_\.]', '_', display_filename)
+            
             if not display_filename.endswith('.png'):
                 display_filename += '.png'
             
+            # Create temporary directory
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_output_path = os.path.join(temp_dir, display_filename)
+                
+                # Parse Markdown to tree structure
                 tree_data = self._parse_markdown_to_tree(markdown_content)
+                
+                # Generate PNG mind map with PIL
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir)
                 
                 if success and os.path.exists(temp_output_path):
+                    # Read generated PNG file
                     with open(temp_output_path, 'rb') as f:
                         png_data = f.read()
                     
-                    size_mb = len(png_data) / (1024 * 1024)
+                    # Calculate file size in MB
+                    file_size = len(png_data)
+                    size_mb = file_size / (1024 * 1024)
+                    size_text = f"{size_mb:.2f}M"
                     
-                    yield self.create_blob_message(
+                    # Create blob message and get the file info
+                    blob_message = self.create_blob_message(
                         blob=png_data,
                         meta={'mime_type': 'image/png', 'filename': display_filename}
                     )
                     
+                    # 准备JSON数据，包含文件URL信息
                     json_data = {
                         "layout_type": "free_structure",
                         "file_size_mb": round(size_mb, 2),
+                        "tree_depth": self._calculate_tree_depth(tree_data),
+                        "total_nodes": len(self._get_all_nodes(tree_data)),
                         "filename": display_filename,
-                        "success": True
+                        "generation_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "success": True,
+                        "file_info": {
+                            "type": "image",
+                            "mime_type": "image/png",
+                            "size": file_size,
+                            "filename": display_filename
+                        }
                     }
+                    
+                    yield blob_message
+                    yield self.create_text_message(f'Free mind map generation successful! File size: {size_text}')
                     yield self.create_json_message(json_data)
                 else:
-                    yield self.create_text_message('Failed to generate image.')
+                    json_data = {
+                        "layout_type": "free_structure",
+                        "success": False,
+                        "error": "Unable to create image file"
+                    }
+                    yield self.create_text_message('Free mind map generation failed: Unable to create image file.')
+                    yield self.create_json_message(json_data)
         
         except Exception as e:
-            yield self.create_text_message(f'Error: {str(e)}')
+            error_msg = str(e)
+            json_data = {
+                "layout_type": "free_structure",
+                "success": False,
+                "error": error_msg
+            }
+            yield self.create_text_message(f'Free mind map generation failed: {error_msg}')
+            yield self.create_json_message(json_data)
 
 def get_tool():
     return MindMapFreeTool
