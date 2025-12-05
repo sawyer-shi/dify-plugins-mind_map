@@ -6,8 +6,8 @@ identity:
     zh_Hans: 脑图(自由结构)
 description:
   human:
-    en_US: Generate smart mind maps that automatically choose between Center and Horizontal layouts based on complexity
-    zh_Hans: 根据内容复杂度自动选择中心或水平样式的智能脑图生成
+    en_US: Generate mind maps that automatically choose between Center and Horizontal layouts based on complexity
+    zh_Hans: 根据内容复杂度自动选择中心或水平样式生成脑图
   llm: A smart tool that converts Markdown text into PNG mind maps, automatically selecting between Center Radial (for simple) and Horizontal (for complex) layouts.
 parameters:
   - name: markdown_content
