@@ -384,9 +384,9 @@ class MindMapHorizontalTool(Tool):
             if not safe_text:
                 safe_text = f"Node"
             
-            # Dynamic font size
-            base_font_size = 40
-            font_size = max(base_font_size - (depth_level * 4), 24)
+            # Dynamic font size (unified with center layout)
+            base_font_size = 42
+            font_size = max(base_font_size - (depth_level * 6), 24)
             
             font = None
             if font_file and os.path.exists(font_file):
@@ -406,8 +406,8 @@ class MindMapHorizontalTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # Padding
-            padding = max(16 - depth_level * 2, 10)
+            # Padding (unified with center layout)
+            padding = max(18 - depth_level * 2, 10)
             border_width = 4 if depth_level == 1 else 3
             
             box_width = text_width + 2 * padding
