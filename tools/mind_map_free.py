@@ -326,7 +326,8 @@ class MindMapFreeTool(Tool):
 
     def _generate_center_layout(self, tree_data: dict, output_file: str, temp_dir: str) -> bool:
         """
-        Generate Center/Radial Mind Map (Original Free Layout Logic)
+        Generate Center/Radial Mind Map with optimized compact layout
+        Same implementation as mind_map_center.py for consistency
         """
         try:
             font_file = self._setup_pil_chinese_font(temp_dir)
@@ -344,10 +345,18 @@ class MindMapFreeTool(Tool):
                 '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
             ]
             
+            # Store layout results: {'x', 'y', 'w', 'h', 'text', 'depth', 'color', 'children': []}
             layout_nodes = []
+            # To check for collisions: list of (x, y, w, h)
             placed_boxes = []
+            # Track minimum radius for each depth level to enforce strict hierarchy
+            min_radius_by_depth = {}  # {depth_level: min_radius}
+            # Track parent radius to ensure children are always further out
+            parent_radius_map = {}  # {node_id: parent_radius}
 
             def check_collision(x, y, w, h, margin=20):
+                """Check if the box collides with any existing boxes"""
+                # Simple AABB collision
                 l1, r1 = x - w/2 - margin, x + w/2 + margin
                 t1, b1 = y - h/2 - margin, y + h/2 + margin
                 
@@ -359,44 +368,127 @@ class MindMapFreeTool(Tool):
                         return True
                 return False
 
-            def layout_recursive(node, parent_x, parent_y, start_angle, end_angle, depth_level, inherited_color):
+            def get_min_radius_for_depth(depth_level, parent_radius=0, parent_size=None, current_size=None):
+                """
+                Calculate minimum radius for a depth level to ensure strict hierarchy.
+                Uses node sizes to calculate compact but safe distances.
+                """
+                # Reduced base minimum radius for more compact layout
+                # Original: 150 + (depth_level - 1) * 200
+                # Optimized: 100 + (depth_level - 1) * 120
+                base_min_radius = 100 + (depth_level - 1) * 120
+                
+                # Ensure child radius is always greater than parent radius
+                if parent_radius > 0:
+                    # Calculate safe distance based on actual node sizes
+                    if parent_size and current_size:
+                        # parent_size and current_size are (width, height) tuples
+                        parent_diagonal = math.sqrt(parent_size[0]**2 + parent_size[1]**2) / 2
+                        current_diagonal = math.sqrt(current_size[0]**2 + current_size[1]**2) / 2
+                        # Safe distance: half of parent diagonal + half of current diagonal + small gap
+                        safe_distance = parent_diagonal + current_diagonal + 30  # Reduced from fixed 120
+                    else:
+                        # Fallback: use smaller fixed distance
+                        safe_distance = 60  # Reduced from 120
+                    
+                    required_radius = parent_radius + safe_distance
+                    base_min_radius = max(base_min_radius, required_radius)
+                
+                # Update global minimum for this depth level
+                if depth_level not in min_radius_by_depth:
+                    min_radius_by_depth[depth_level] = base_min_radius
+                else:
+                    min_radius_by_depth[depth_level] = max(min_radius_by_depth[depth_level], base_min_radius)
+                
+                return min_radius_by_depth[depth_level]
+
+            def layout_recursive(node, parent_x, parent_y, start_angle, end_angle, depth_level, inherited_color, parent_radius=0, parent_size=None, node_id=None):
+                """
+                Recursive layout with strict hierarchy enforcement and enhanced collision detection.
+                Ensures all elements extend outward only, never inward.
+                Optimized for compact layout while maintaining no-overlap guarantee.
+                """
                 content = node.get('content', 'Node')
                 children = node.get('children', [])
                 
+                # Generate unique node ID for tracking
+                if node_id is None:
+                    node_id = f"node_{depth_level}_{id(node)}"
+                
+                # Measure text size
                 w, h = self._measure_text_size(content, depth_level, font_file)
+                current_size = (w, h)
                 
                 if depth_level == 1:
+                    # Root node
                     x, y = 0, 0
                     node_color = '#333333'
+                    current_radius = 0
                 else:
                     node_color = inherited_color
-                    mid_angle = (start_angle + end_angle) / 2
-                    radius_base = 200 * depth_level if depth_level > 1 else 0 
                     
-                    current_r = radius_base
-                    max_attempts = 20
-                    step = 60
+                    # Calculate minimum radius for this depth level (strict hierarchy)
+                    # Pass node sizes for more accurate distance calculation
+                    min_radius = get_min_radius_for_depth(depth_level, parent_radius, parent_size, current_size)
+                    
+                    # Preliminary polar coordinates calculation
+                    mid_angle = (start_angle + end_angle) / 2
+                    
+                    # Start from minimum radius (never go inward)
+                    radius_base = min_radius
+                    
+                    # Optimized collision resolution with smaller, more precise steps
+                    # Use smaller base step for finer positioning
+                    base_step = 20 + (depth_level - 1) * 5  # Reduced from 60 + (depth-1)*10
+                    max_attempts = 150  # More attempts with smaller steps
                     
                     final_x, final_y = 0, 0
                     placed = False
+                    current_radius = 0
                     
+                    # Try placing along the radial line, pushing outwards if collision
+                    # CRITICAL: Never allow inward movement - always start from min_radius
                     for attempt in range(max_attempts):
-                        test_r = current_r + attempt * step
+                        # Use smaller, more precise steps for compact layout
+                        # Only slightly increase step size for later attempts
+                        step = base_step * (1 + attempt * 0.05)  # Reduced from 0.1 to 0.05
+                        test_r = radius_base + attempt * step
+                        
+                        # Ensure we never go inward (strict hierarchy enforcement)
+                        if test_r < min_radius:
+                            test_r = min_radius
+                        
                         test_x = test_r * math.cos(mid_angle)
                         test_y = test_r * math.sin(mid_angle)
                         
                         if not check_collision(test_x, test_y, w, h):
                             final_x, final_y = test_x, test_y
+                            current_radius = test_r
                             placed = True
                             break
                     
                     if not placed:
-                        final_x, final_y = test_x, test_y
-                        
+                        # Fallback: place at maximum attempted radius
+                        final_x = test_r * math.cos(mid_angle)
+                        final_y = test_r * math.sin(mid_angle)
+                        current_radius = test_r
+                    
                     x, y = final_x, final_y
+                    
+                    # Update minimum radius for this depth level based on actual placement
+                    # But don't update too aggressively to avoid pushing everything out
+                    if current_radius > min_radius_by_depth.get(depth_level, 0):
+                        # Only update if significantly larger (avoid minor updates that push everything out)
+                        if current_radius > min_radius_by_depth.get(depth_level, 0) * 1.2:
+                            min_radius_by_depth[depth_level] = current_radius
+                
+                # Store parent radius for children
+                parent_radius_map[node_id] = current_radius
 
+                # Register placed box
                 placed_boxes.append((x, y, w, h))
                 
+                # Store node info for drawing
                 node_info = {
                     'x': x, 'y': y, 
                     'parent_x': parent_x, 'parent_y': parent_y,
@@ -405,9 +497,11 @@ class MindMapFreeTool(Tool):
                 }
                 layout_nodes.append(node_info)
                 
+                # Process children
                 if children:
                     total_weight = sum(child.get('weight', 1) for child in children)
                     angle_range = end_angle - start_angle
+                    
                     current_angle = start_angle
                     
                     for i, child in enumerate(children):
@@ -417,43 +511,74 @@ class MindMapFreeTool(Tool):
                         child_start = current_angle
                         child_end = current_angle + child_angle_step
                         
+                        # Determine color
                         if depth_level == 1:
                             child_c = branch_colors[i % len(branch_colors)]
                         else:
                             child_c = inherited_color
-                            
-                        layout_recursive(child, x, y, child_start, child_end, depth_level + 1, child_c)
+                        
+                        # Pass parent radius and size to ensure child is always further out
+                        child_node_id = f"{node_id}_child_{i}"
+                        layout_recursive(child, x, y, child_start, child_end, depth_level + 1, child_c, 
+                                       parent_radius=current_radius, parent_size=current_size, node_id=child_node_id)
+                        
                         current_angle += child_angle_step
 
-            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, '#333333')
+            # Start Layout
+            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, '#333333', parent_radius=0, parent_size=None, node_id='root')
             
+            # Calculate dynamic canvas size with enhanced margin
             if not layout_nodes:
                 return False
-                
+            
+            # Calculate bounding box with node dimensions
             min_x = min(n['x'] - n['width']/2 for n in layout_nodes)
             max_x = max(n['x'] + n['width']/2 for n in layout_nodes)
             min_y = min(n['y'] - n['height']/2 for n in layout_nodes)
             max_y = max(n['y'] + n['height']/2 for n in layout_nodes)
             
-            margin = 100
+            # Calculate maximum radius to ensure adequate space
+            max_radius = 0
+            for n in layout_nodes:
+                node_radius = math.sqrt(n['x']**2 + n['y']**2)
+                # Add half of node diagonal to account for node size
+                node_diagonal = math.sqrt(n['width']**2 + n['height']**2) / 2
+                total_radius = node_radius + node_diagonal
+                max_radius = max(max_radius, total_radius)
+            
+            # Enhanced margin calculation based on maximum radius and depth
+            # Deeper structures need more margin
+            max_depth = max(n['depth'] for n in layout_nodes) if layout_nodes else 1
+            base_margin = 150
+            depth_margin = max_depth * 30  # Additional margin per depth level
+            margin = base_margin + depth_margin
+            
+            # Calculate canvas size with enhanced margin
             total_width = max_x - min_x + 2 * margin
             total_height = max_y - min_y + 2 * margin
             
-            total_width = max(total_width, 800)
-            total_height = max(total_height, 600)
+            # Ensure minimum size based on maximum radius
+            min_size_from_radius = (max_radius + margin) * 2
+            total_width = max(total_width, min_size_from_radius, 1000)
+            total_height = max(total_height, min_size_from_radius, 800)
             
+            # Matplotlib figsize is in inches. Assume dpi=100
             dpi = 100
             fig_width = total_width / dpi
             fig_height = total_height / dpi
             
-            plt.close('all')
+            # Re-create figure with calculated size
+            plt.close() # Close initial dummy figure
             fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), dpi=dpi)
             
+            # Set limits to match our coordinate system
             ax.set_xlim(min_x - margin, max_x + margin)
             ax.set_ylim(min_y - margin, max_y + margin)
             ax.axis('off')
             
+            # Helper for drawing lines
             def draw_curved_branch_line(start_x, start_y, end_x, end_y, color='#333333', linewidth=3):
+                """Draw smooth curved branch line"""
                 if abs(start_x - end_x) < 0.01 and abs(start_y - end_y) < 0.01:
                     return
                 
@@ -465,9 +590,7 @@ class MindMapFreeTool(Tool):
                     ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=linewidth, alpha=0.8)
                     return
                 
-                mid_x = (start_x + end_x) / 2
-                mid_y = (start_y + end_y) / 2
-                
+                # 贝塞尔控制点计算
                 t = np.linspace(0, 1, 50)
                 
                 start_dist = math.sqrt(start_x**2 + start_y**2)
@@ -488,32 +611,38 @@ class MindMapFreeTool(Tool):
                 
                 ax.plot(curve_x, curve_y, color=color, linewidth=linewidth, alpha=0.8)
 
+            # Draw lines first
             for node in layout_nodes:
                 if node['depth'] > 1:
+                    # Draw line from parent
                     line_width = max(3 - node['depth'] * 0.5, 1)
                     draw_curved_branch_line(node['parent_x'], node['parent_y'], 
                                           node['x'], node['y'], 
                                           color=node['color'], linewidth=line_width)
             
+            # Save base image (lines only)
             plt.tight_layout(pad=0)
-            ax.set_position([0, 0, 1, 1])
+            ax.set_position([0, 0, 1, 1]) # Occupy full figure
             
             temp_base_file = os.path.join(temp_dir, "base_center_mindmap.png")
             plt.savefig(temp_base_file, dpi=dpi, facecolor='white', edgecolor='none', format='png')
             plt.close()
             
+            # Open with PIL to draw text
             base_img = Image.open(temp_base_file)
             draw = ImageDraw.Draw(base_img)
             img_w, img_h = base_img.size
             
+            # Coordinate transform: Data (min_x..max_x) -> Pixel (0..img_w)
             x_range = (max_x + margin) - (min_x - margin)
             y_range = (max_y + margin) - (min_y - margin)
             
             def data_to_pixel(x, y):
                 px = (x - (min_x - margin)) / x_range * img_w
-                py = img_h - (y - (min_y - margin)) / y_range * img_h
+                py = img_h - (y - (min_y - margin)) / y_range * img_h # Flip Y
                 return px, py
             
+            # Draw text
             for node in layout_nodes:
                 px, py = data_to_pixel(node['x'], node['y'])
                 self._draw_text_with_pil(
