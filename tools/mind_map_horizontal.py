@@ -269,50 +269,11 @@ class MindMapHorizontalTool(Tool):
         parent_width = node['_width']
         connector_length = 2.0 # Fixed minimum length for the curved line
         
-        # X coordinate is center-based? 
-        # No, let's assume 'x' is the center of the node to be consistent with previous logic.
-        
-        # Child X should be:
-        # Parent X + Parent Half Width + Connector + Child Half Width?
-        # Since child widths vary, we can't set a single 'child_x' for all children if we want them perfectly aligned left.
-        # Usually in mind maps, children are aligned to a specific "Level X".
-        # To do this, we need the MAX width of the parent level? No, that wastes space.
-        # Or we just align all children to: Parent X + Parent Half Width + Connector + Max Sibling Half Width?
-        # Let's stick to: All children of this node start at the same X for neatness.
-        # That X is determined by the Parent's width.
-        
-        # Distance to children column
-        # Since children are left-aligned (or center-aligned in their column?)
-        # Let's align children's CENTERS.
-        # To avoid overlap, we need to know the widest child?
-        # Or simpler: Just push them out enough.
-        
-        # Let's try:
-        # child_start_x = x + (parent_width / 2) + connector_length
-        # But children also have widths. If we just place them at child_start_x, 
-        # a wide child might overlap back? No, x is center.
-        
-        # Let's calculate the maximum width among all children to decide a safe "column center" for them?
-        # This makes the layout look like columns.
         max_child_width = 0
         for child in children:
             max_child_width = max(max_child_width, child['_width'])
             
-        # Place children at:
-        # x (parent center) + parent_width/2 (edge) + connector + max_child_width/2 (child center)
-        # This ensures even the widest child doesn't overlap the parent layer.
-        
-        # Optimization:
-        # Instead of max_child_width, we can just use a fixed "safe" offset if we assume 
-        # the connector is long enough. 
-        # But the user complained about overlap. 
-        # So using specific widths is better.
-        
         dist_to_children = (parent_width / 2) + connector_length + (max_child_width / 2)
-        
-        # Limit the visual gap. If a child is super wide, we don't want the connector to be huge for small children.
-        # But for neatness, a straight vertical alignment of children is preferred.
-        # Let's trust the column approach.
         
         child_x = x + dist_to_children
         
@@ -354,40 +315,59 @@ class MindMapHorizontalTool(Tool):
             
         start_x, start_y = node['x'], node['y']
         # Line starts from right edge of parent text box
-        # We need accurate box width again
         parent_width = node['_width']
-        line_start_x = start_x + (parent_width / 2)
+        
+        # Visual edge (where the box ends visually)
+        visual_start_x = start_x + (parent_width / 2)
+        
+        # Actual line start (retracted into the box to ensure connection)
+        # Retract by 40% of half-width to be safe against width estimation errors
+        line_start_x = start_x + (parent_width / 2) * 0.6
         
         for child in children:
             end_x, end_y = child['x'], child['y']
             child_width = child['_width']
-            line_end_x = end_x - (child_width / 2)
+            
+            # Visual edge
+            visual_end_x = end_x - (child_width / 2)
+            
+            # Actual line end (retracted)
+            line_end_x = end_x - (child_width / 2) * 0.6
             
             color = child['color']
             linewidth = max(3 - child['depth'] * 0.3, 1)
             
-            # Draw bezier
-            self._draw_bezier_curve(ax, line_start_x, start_y, line_end_x, end_y, color, linewidth)
+            # Draw bezier using both visual and actual points
+            self._draw_bezier_curve(ax, line_start_x, start_y, line_end_x, end_y, 
+                                  visual_start_x, visual_end_x,
+                                  color, linewidth)
             
             # Recurse
             self._draw_lines_recursive(ax, child)
 
-    def _draw_bezier_curve(self, ax, start_x, start_y, end_x, end_y, color, linewidth):
+    def _draw_bezier_curve(self, ax, start_x, start_y, end_x, end_y, 
+                          visual_start_x, visual_end_x, color, linewidth):
         import numpy as np
         
-        dist = math.sqrt((end_x - start_x)**2 + (end_y - start_y)**2)
-        # Control points
-        # Adjust based on horizontal distance
-        h_dist = abs(end_x - start_x)
+        # Calculate control points based on VISUAL boundaries for correct curvature shape
+        # If we used retracted points, the curve might bend inside the box
+        
+        dist = math.sqrt((visual_end_x - visual_start_x)**2 + (end_y - start_y)**2)
+        h_dist = abs(visual_end_x - visual_start_x)
+        
+        # Control points extending from visual edges
         cp_dist = min(h_dist * 0.6, 4.0)
         
-        cp1_x = start_x + cp_dist
+        cp1_x = visual_start_x + cp_dist
         cp1_y = start_y
         
-        cp2_x = end_x - cp_dist
+        cp2_x = visual_end_x - cp_dist
         cp2_y = end_y
         
+        # Generate curve points
         t = np.linspace(0, 1, 50)
+        
+        # Bezier formula
         x = (1-t)**3 * start_x + 3*(1-t)**2*t * cp1_x + 3*(1-t)*t**2 * cp2_x + t**3 * end_x
         y = (1-t)**3 * start_y + 3*(1-t)**2*t * cp1_y + 3*(1-t)*t**2 * cp2_y + t**3 * end_y
         
