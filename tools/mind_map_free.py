@@ -192,23 +192,21 @@ class MindMapFreeTool(Tool):
         """
         Analyze tree complexity to decide layout.
         Returns: 'center' or 'horizontal'
+        
+        Rules:
+        - Use center layout when depth <= 4 AND total_nodes <= 100
+        - Use horizontal layout otherwise (for deep or large structures)
         """
         depth = self._calculate_tree_depth(tree_data)
         nodes = self._get_all_nodes(tree_data)
         total_nodes = len(nodes)
         
-        # Complexity Heuristics
-        # 1. Depth: Deep trees (>3 levels) are hard to read in radial/center mode
-        # 2. Volume: Large trees (>20 nodes) often clutter center mode
+        # Use center layout for moderate complexity (depth <= 4 and nodes <= 100)
+        if depth <= 4 and total_nodes <= 100:
+            return 'center'
         
-        if depth > 3:
-            return 'horizontal'
-        
-        if total_nodes > 25:
-            return 'horizontal'
-            
-        # Default to center for simple/shallow maps
-        return 'center'
+        # Use horizontal layout for deep or large structures
+        return 'horizontal'
 
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
         """
