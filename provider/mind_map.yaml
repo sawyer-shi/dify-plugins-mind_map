@@ -5,12 +5,13 @@ identity:
     en_US: "Mind Map Generator"
     zh_Hans: "脑图"
   description:
-    en_US: "Convert your markdown text into mind-map image output with two layout options"
-    zh_Hans: "将Markdown文本转换为脑图图片，支持两种布局选择"
+    en_US: "Convert your markdown text into mind-map image output with three layout options"
+    zh_Hans: "将Markdown文本转换为脑图图片，支持三种布局选择"
   icon: "icon.png"
 tools:
   - tools/mind_map_center.yaml
   - tools/mind_map_horizontal.yaml
+  - tools/mind_map_free.yaml
 extra:
   python:
     source: provider/mind_map.py

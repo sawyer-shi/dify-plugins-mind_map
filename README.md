@@ -4,19 +4,20 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ## Version Information
 
-- **Current Version**: v0.0.3
-- **Release Date**: 2025-10-14
+- **Current Version**: v0.0.4
+- **Release Date**: 2025-12-05
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
+- **v0.0.4** (2025-12-05): Added Free Structure Layout with optimized collision avoidance
 - **v0.0.3** (2025-10-14): Adjust font centering and interface display effects, and fix known bugs
 - **v0.0.2** (2025-09-02): Improved text rendering - removed bold effect while maintaining 1.5x font size for better readability
 - **v0.0.1** (2025-07-29): Initial release with dual layout support and perfect Chinese compatibility
 
 ## Core Features
 
-### Dual Layout Support
+### Triple Layout Support
 <img width="1932" height="925" alt="mind-map-en-01" src="https://github.com/user-attachments/assets/7ad41fac-eb86-419e-a477-25ce50b1a12e" />
 
 - **Center Radial Layout**: Classic radial mind maps, perfect for knowledge systems and concept relationships
@@ -24,6 +25,8 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 - **Horizontal Layout**: Left-to-right hierarchical expansion, ideal for processes and timelines
 - <img width="3585" height="2085" alt="mind-map-en-02" src="https://github.com/user-attachments/assets/e5812438-80f3-4615-9072-48f90f3a7538" />
+
+- **Free Structure Layout**: Optimized radial layout that intelligently manages space to prevent overlapping, ideal for complex and dense mind maps. Features weighted angular distribution and dynamic spacing.
 
 
 ### Perfect Chinese Support

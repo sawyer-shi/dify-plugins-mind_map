@@ -3,6 +3,7 @@ from dify_plugin import ToolProvider
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from tools.mind_map_center import MindMapCenterTool
 from tools.mind_map_horizontal import MindMapHorizontalTool
+from tools.mind_map_free import MindMapFreeTool
 
 
 class MindMapProvider(ToolProvider):
@@ -18,7 +19,7 @@ class MindMapProvider(ToolProvider):
         """
         返回可用的工具列表
         """
-        return [MindMapCenterTool, MindMapHorizontalTool]
+        return [MindMapCenterTool, MindMapHorizontalTool, MindMapFreeTool]
 
 
 # 创建provider实例
