@@ -18,13 +18,18 @@
 ## 核心特性
 
 ### 三种布局支持
-<img width="1980" height="798" alt="mind-map-zh-01" src="https://github.com/user-attachments/assets/a2fdb4d6-ccc0-4292-bd98-2e7b3db6975b" />
+<img width="1924" height="896" alt="00" src="https://github.com/user-attachments/assets/e4a802f9-d0e7-48a4-9594-c38ceefa3aa9" />
+<img width="7451" height="7451" alt="01" src="https://github.com/user-attachments/assets/9d49c861-f1bb-4eb5-a94b-1f0509fa7f2c" />
+
+
 
 - **中心辐射布局**: 经典的放射状思维导图，适合知识体系和概念关系展示
-- <img width="2985" height="2385" alt="mind-map-zh-03" src="https://github.com/user-attachments/assets/10bc896a-0837-4631-a92f-f55d50501212" />
+<img width="4876" height="4876" alt="Chinese_01" src="https://github.com/user-attachments/assets/d4908dee-65a9-458a-9537-608cc7bc1bd4" />
+
 
 - **水平展开布局**: 从左到右的层次展开，适合流程和时间线展示
-- <img width="3585" height="2085" alt="mind-map-zh-02" src="https://github.com/user-attachments/assets/f8f1fb2e-8708-40d3-9da0-2bf57a0d579e" />
+<img width="3207" height="3392" alt="Chinese_02" src="https://github.com/user-attachments/assets/f7419c7f-be68-48e0-b4d4-9c346e3507a7" />
+
 
 - **智能自由结构布局**: 自动分析内容复杂度和层级深度，选择最佳布局（简单/概念类使用中心辐射，深度/复杂层级使用水平展开）。
 
