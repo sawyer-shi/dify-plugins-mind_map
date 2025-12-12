@@ -18,7 +18,7 @@
 ## 核心特性
 
 ### 三种布局支持
-<img width="1924" height="896" alt="00" src="https://github.com/user-attachments/assets/e4a802f9-d0e7-48a4-9594-c38ceefa3aa9" />
+<img width="2296" height="949" alt="00" src="https://github.com/user-attachments/assets/34cca4be-60bc-4c45-b344-95a8ed8a93b3" />
 <img width="7451" height="7451" alt="01" src="https://github.com/user-attachments/assets/9d49c861-f1bb-4eb5-a94b-1f0509fa7f2c" />
 
 
