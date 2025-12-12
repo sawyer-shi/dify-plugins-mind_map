@@ -84,6 +84,8 @@ class MindMapHorizontalTool(Tool):
         """
         Universal Markdown parser
         """
+        # Replace escaped newlines with real newlines to handle escaped Markdown content
+        markdown_text = markdown_text.replace('\\n', '\n')
         lines = markdown_text.strip().split('\n')
         nodes = []
         node_stack = []
