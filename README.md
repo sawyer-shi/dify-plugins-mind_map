@@ -18,7 +18,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 ## Core Features
 
 ### Triple Layout Support
-<img width="1924" height="896" alt="00" src="https://github.com/user-attachments/assets/209feca2-562a-456e-977e-706fcde10c51" />
+<img width="2296" height="949" alt="00" src="https://github.com/user-attachments/assets/30159e4a-cbb6-4b91-9870-7d70b92f755e" />
 
 <img width="7451" height="7451" alt="01" src="https://github.com/user-attachments/assets/56c7254c-fb78-493c-b707-75f356482ee1" />
 
