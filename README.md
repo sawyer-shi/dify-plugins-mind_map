@@ -19,12 +19,16 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ### Triple Layout Support
 <img width="1932" height="925" alt="mind-map-en-01" src="https://github.com/user-attachments/assets/7ad41fac-eb86-419e-a477-25ce50b1a12e" />
+<img width="7451" height="7451" alt="01" src="https://github.com/user-attachments/assets/56c7254c-fb78-493c-b707-75f356482ee1" />
+
 
 - **Center Radial Layout**: Classic radial mind maps, perfect for knowledge systems and concept relationships
-- <img width="2985" height="2385" alt="mind-map-en-03" src="https://github.com/user-attachments/assets/3d3f8d39-b50a-4b27-b0b1-9269a74ef2fa" />
+<img width="8542" height="8542" alt="English_01" src="https://github.com/user-attachments/assets/52095858-f150-494b-a6c6-03a39e8a106d" />
+
 
 - **Horizontal Layout**: Left-to-right hierarchical expansion, ideal for processes and timelines
-- <img width="3585" height="2085" alt="mind-map-en-02" src="https://github.com/user-attachments/assets/e5812438-80f3-4615-9072-48f90f3a7538" />
+<img width="6892" height="4288" alt="English_02" src="https://github.com/user-attachments/assets/8f7232f4-23e9-4e59-b450-9b23d440687f" />
+
 
 - **Smart Free Structure Layout**: Automatically analyzes content complexity and tree depth to choose the best layout (Center Radial for simple/conceptual maps, Horizontal for deep/complex hierarchies).
 
