@@ -1,6 +1,6 @@
 ﻿# Mind Map Generator Plugin
 
-A powerful mind map generation plugin that intelligently converts Markdown text into beautiful PNG mind maps. Supports both center radial and horizontal layouts, with perfect Chinese environment compatibility.
+A powerful mind map generation plugin that intelligently converts Markdown text into beautiful PNG mind maps. Supports both center radial and horizontal layouts, with perfect Chinese environment compatibility.【Mind maps generated locally, no API Key required, no external network or services needed】
 
 ## Version Information
 
