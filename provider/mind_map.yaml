@@ -6,7 +6,7 @@ identity:
     zh_Hans: "脑图"
   description:
     en_US: "Local Mind Map Generator: Generate beautiful mind maps from Markdown text with center, horizontal and free layouts"
-    zh_Hans: "本地脑图生成器：将Markdown文本转换为精美的脑图，支持中心结构、左右结构和自由结构布局"
+    zh_Hans: "本地脑图(思维导图)生成器：将Markdown文本转换为精美的脑图(思维导图)，支持中心结构、左右结构和自由结构布局"
   icon: "icon.png"
 tools:
   - tools/mind_map_center.yaml
