@@ -34,7 +34,7 @@ plugins:
   tools:
     - provider/mind_map.yaml
 meta:
-  version: 0.0.4
+  version: 0.0.5
   author: sawyer-shi
   arch:
     - amd64
