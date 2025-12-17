@@ -4,7 +4,7 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ## Version Information
 
-- **Current Version**: v0.0.4
+- **Current Version**: v0.0.5
 - **Release Date**: 2025-12-14
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
