@@ -1,8 +1,9 @@
-﻿# Privacy Policy / 隐私政策
+# Privacy Policy / 隐私政策
 
 **Effective Date / 生效日期**: July 29, 2025 / 2025年7月29日
-**Version / 版本**: v0.0.1
+**Version / 版本**: v0.0.6
 **Plugin Name / 插件名称**: Mind Map Generator Plugin / 脑图生成器插件
+**License / 开源协议**: Apache License 2.0
 
 ---
 
@@ -93,7 +94,16 @@ The Mind Map Generator Plugin ("Plugin") is designed to convert Markdown text in
 **邮箱：** sawyer36@foxmail.com
 **项目代码来源：** https://github.com/sawyer-shi/dify-plugins-mind_map.git
 **支持：** 通过Dify平台和GitHub Issues提供
+**开源协议：** Apache License 2.0
 
 ---
 
-**最后更新：** 2025年7月29日
+## License / 开源协议
+
+This plugin is licensed under Apache License 2.0. Please refer to the LICENSE file for the full license text.
+
+本插件采用Apache License 2.0开源协议。完整的许可证文本请参考LICENSE文件。
+
+---
+
+**最后更新：** 2026年1月1日

@@ -662,7 +662,7 @@ class MindMapCenterWatermarkTool(Tool):
             # Watermark parameters
             watermark_text = tool_parameters.get('watermark_text', '')
             opacity = tool_parameters.get('opacity', 40)
-            watermark_layout = tool_parameters.get('watermark_layout', 'corners')
+            watermark_layout = tool_parameters.get('watermark_layout', 'tile')
 
             if not markdown_content:
                 yield self.create_text_message('Center mind map generation failed: No Markdown content provided.')
