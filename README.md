@@ -13,7 +13,6 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 - **v0.0.6** (2026-1-1): 
   - Added Watermark support for all layouts (Center, Horizontal, Free)
   - Supports custom watermark text (required), opacity (0-255), and multiple layout options (tile, center, corners, individual corners)
-  - **License Change**: Changed from MIT License to Apache License 2.0
 - **v0.0.5** (2025-12-14): Fix bugs in Free Structure Layout.
 - **v0.0.4** (2025-12-06): Added Free Structure Layout to Smart Layout that automatically chooses between Center and Horizontal styles based on complexity. Implemented anti-overlap algorithms for both Center and Horizontal layouts to fix element overlapping bugs.
 - **v0.0.3** (2025-10-14): Adjust font centering and interface display effects, and fix known bugs
@@ -74,6 +73,12 @@ Add custom watermarks to your mind maps with extensive customization options:
 - **License**: Apache License 2.0
 - **Source Code**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **Support**: Through Dify platform and GitHub Issues
+
+## License Notice
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for the full license text.
+
+**Note**: This project was previously licensed under MIT License but has been updated to Apache License 2.0 starting from version 0.0.6.
 
 ---
 
