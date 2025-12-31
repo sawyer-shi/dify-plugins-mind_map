@@ -5,13 +5,16 @@ identity:
     en_US: "Mind Map Generator"
     zh_Hans: "脑图"
   description:
-    en_US: "Local Mind Map Generator: Generate beautiful mind maps from Markdown text with center, horizontal and free layouts"
-    zh_Hans: "本地脑图(思维导图)生成器：将Markdown文本转换为精美的脑图(思维导图)，支持中心结构、左右结构和自由结构布局"
+    en_US: "Local Mind Map Generator: Generate beautiful mind maps from Markdown text with center, horizontal and free layouts, supporting watermarks."
+    zh_Hans: "本地脑图生成器：将Markdown文本转换为精美的脑图(思维导图)，支持中心结构、左右结构、自由结构布局，支持添加水印"
   icon: "icon.png"
 tools:
   - tools/mind_map_center.yaml
   - tools/mind_map_horizontal.yaml
   - tools/mind_map_free.yaml
+  - tools/mind_map_center_watermark.yaml
+  - tools/mind_map_horizontal_watermark.yaml
+  - tools/mind_map_free_watermark.yaml
 extra:
   python:
     source: provider/mind_map.py

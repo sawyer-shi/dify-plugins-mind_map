@@ -4,12 +4,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ## Version Information
 
-- **Current Version**: v0.0.5
-- **Release Date**: 2025-12-14
+- **Current Version**: v0.0.6
+- **Release Date**: 2025-12-31
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
+- **v0.0.6** (2025-12-31): Added Watermark support for all layouts (Center, Horizontal, Free). Supports custom text (required), opacity, layout (corners, tile, center).
 - **v0.0.5** (2025-12-14): Fix bugs in Free Structure Layout.
 - **v0.0.4** (2025-12-06): Added Free Structure Layout to Smart Layout that automatically chooses between Center and Horizontal styles based on complexity. Implemented anti-overlap algorithms for both Center and Horizontal layouts to fix element overlapping bugs.
 - **v0.0.3** (2025-10-14): Adjust font centering and interface display effects, and fix known bugs
@@ -34,6 +35,17 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 - **Smart Free Structure Layout**: Automatically analyzes content complexity and tree depth to choose the best layout (Center Radial for simple/conceptual maps, Horizontal for deep/complex hierarchies).
 
+
+### Watermark Support (New in v0.0.6)
+Add custom watermarks to your mind maps with extensive customization options:
+- **Watermark Text**: Custom text content (Required)
+- **Opacity**: Adjustable transparency (0-255)
+- **Layout Options**:
+  - Full Screen Tile (default)
+  - Four Corners
+  - Center
+  - Individual Corners (TL, TR, BL, BR)
+- **Layering**: Watermark is always placed in the background for better readability.
 
 ### Perfect Chinese Support
 - Built-in 18.79MB Chinese font file ensures perfect rendering in server environments
