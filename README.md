@@ -48,6 +48,8 @@ Add custom watermarks to your mind maps with extensive customization options:
   - Center
   - Individual Corners (TL, TR, BL, BR)
 - **Layering**: Watermark is always placed in the background for better readability.
+<img width="6416" height="6416" alt="mindmap_center_1768200397" src="https://github.com/user-attachments/assets/dc582830-8898-4129-8090-9557009747c0" />
+
 
 ### Perfect Chinese Support
 - Built-in 18.79MB Chinese font file ensures perfect rendering in server environments
