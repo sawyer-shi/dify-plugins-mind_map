@@ -650,6 +650,7 @@ class MindMapCenterTool(Tool):
         try:
             markdown_content = tool_parameters.get('markdown_content', '').strip()
             filename = tool_parameters.get('filename', '').strip()
+            download_md = tool_parameters.get('download_md', False)
             
             if not markdown_content:
                 yield self.create_text_message('Center mind map generation failed: No Markdown content provided.')
@@ -699,6 +700,16 @@ class MindMapCenterTool(Tool):
                     yield blob_message
                     yield self.create_text_message(f'Center mind map generation successful! File size: {size_text}')
                     yield self.create_json_message(json_data)
+                    
+                    if download_md:
+                        md_filename = display_filename.replace('.png', '.md')
+                        md_data = markdown_content.encode('utf-8')
+                        md_blob_message = self.create_blob_message(
+                            blob=md_data,
+                            meta={'mime_type': 'text/markdown', 'filename': md_filename}
+                        )
+                        yield md_blob_message
+                        yield self.create_text_message(f'MD file downloaded: {md_filename}')
                 else:
                     json_data = {
                         "layout_type": "center",

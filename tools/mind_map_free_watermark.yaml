@@ -96,6 +96,17 @@ parameters:
       en_US: Layout style of the watermark
       zh_Hans: 水印的布局方式
     form: form
+  - name: download_md
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Download MD File
+      zh_Hans: 是否下载输出脑图md文件
+    human_description:
+      en_US: Whether to output the mind map MD file in addition to the PNG image
+      zh_Hans: 除了正常输出脑图图片外，是否还输出脑图的md文件
+    form: form
 extra:
   python:
     source: tools/mind_map_free_watermark.py

@@ -32,6 +32,17 @@ parameters:
       zh_Hans: PNG输出文件的文件名(可选，无需扩展名)
     llm_description: Optional filename for the generated PNG mind map. If not provided, a timestamp will be used
     form: llm
+  - name: download_md
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Download MD File
+      zh_Hans: 是否下载输出脑图md文件
+    human_description:
+      en_US: Whether to output the mind map MD file in addition to the PNG image
+      zh_Hans: 除了正常输出脑图图片外，是否还输出脑图的md文件
+    form: form
 extra:
   python:
     source: tools/mind_map_horizontal.py 
