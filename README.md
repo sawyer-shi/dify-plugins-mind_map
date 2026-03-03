@@ -4,12 +4,13 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 ## Version Information
 
-- **Current Version**: v0.0.6
+- **Current Version**: v0.0.7
 - **Release Date**: 2026-1-1
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
+- **v0.0.7** (2026-3-3): New version release
 - **v0.0.6** (2026-1-1): 
   - Added Watermark support for all layouts (Center, Horizontal, Free)
   - Supports custom watermark text (required), opacity (0-255), and multiple layout options (tile, center, corners, individual corners)
