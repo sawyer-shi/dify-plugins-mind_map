@@ -712,7 +712,7 @@ class MindMapCenterWatermarkTool(Tool):
                     }
                     
                     yield blob_message
-                    yield self.create_text_message(f'Center mind map generation successful! File size: {size_text}')
+                    yield self.create_text_message(f'Center mind map generation successful! Image File size: {size_text}')
                     yield self.create_json_message(json_data)
                     
                     if download_md:
@@ -723,7 +723,7 @@ class MindMapCenterWatermarkTool(Tool):
                             meta={'mime_type': 'text/markdown', 'filename': md_filename}
                         )
                         yield md_blob_message
-                        yield self.create_text_message(f'Markdown file downloaded: {md_filename}')
+                        yield self.create_text_message(f', Markdown file downloaded: {md_filename}')
                 else:
                     json_data = {
                         "layout_type": "center",
