@@ -555,7 +555,7 @@ class MindMapHorizontalWatermarkTool(Tool):
                             meta={'mime_type': 'text/markdown', 'filename': md_filename}
                         )
                         yield md_blob_message
-                        yield self.create_text_message(f'MD file downloaded: {md_filename}')
+                        yield self.create_text_message(f'Markdown file downloaded: {md_filename}')
                 else:
                     yield self.create_text_message('Generation failed: Unable to create image file.')
         

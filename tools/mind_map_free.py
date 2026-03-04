@@ -987,7 +987,7 @@ class MindMapFreeTool(Tool):
                             meta={'mime_type': 'text/markdown', 'filename': md_filename}
                         )
                         yield md_blob_message
-                        yield self.create_text_message(f'MD file downloaded: {md_filename}')
+                        yield self.create_text_message(f'Markdown file downloaded: {md_filename}')
                 else:
                     json_data = {
                         "layout_type": "smart_free_structure",
