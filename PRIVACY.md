@@ -1,7 +1,7 @@
 # Privacy Policy / 隐私政策
 
 **Effective Date / 生效日期**: July 29, 2025 / 2025年7月29日
-**Version / 版本**: v0.0.6
+**Version / 版本**: v0.0.8
 **Plugin Name / 插件名称**: Mind Map Generator Plugin / 脑图生成器插件
 **License / 开源协议**: Apache License 2.0
 
