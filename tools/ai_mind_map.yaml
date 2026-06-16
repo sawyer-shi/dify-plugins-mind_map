@@ -1,0 +1,94 @@
+identity:
+  name: ai_mind_map
+  author: sawyer-shi
+  label:
+    en_US: AI Mind Map
+    zh_Hans: AI脑图
+description:
+  human:
+    en_US: Use a selected LLM model to summarize plain text into mind map Markdown, then generate a PNG mind map with center, horizontal, or free layout.
+    zh_Hans: 选择LLM模型，将用户输入文本自动总结为脑图Markdown结构，并按中心结构、左右结构或自由结构生成PNG脑图。
+  llm: Use a selected LLM model to summarize text into mind map Markdown and render it as a PNG mind map.
+parameters:
+  - name: model_config
+    type: model-selector
+    scope: llm
+    required: true
+    label:
+      en_US: LLM Model
+      zh_Hans: LLM模型
+    human_description:
+      en_US: The LLM model used to summarize the input text into mind map Markdown.
+      zh_Hans: 用于把输入文本总结成脑图Markdown结构的LLM模型。
+    llm_description: The LLM model used to summarize text into mind map Markdown.
+    form: form
+  - name: text_content
+    type: string
+    required: true
+    label:
+      en_US: Text Content
+      zh_Hans: 文本内容
+    human_description:
+      en_US: Plain text content to summarize and convert into a mind map.
+      zh_Hans: 要总结并转换为脑图的普通文本内容。
+    llm_description: Plain text content that will be summarized into mind map Markdown.
+    form: llm
+  - name: layout_mode
+    type: select
+    required: false
+    default: free
+    label:
+      en_US: Mind Map Layout
+      zh_Hans: 脑图模式
+    human_description:
+      en_US: Choose the output mind map layout.
+      zh_Hans: 选择输出脑图的布局模式。
+    llm_description: Output layout mode for the mind map.
+    form: form
+    options:
+      - value: center
+        label:
+          en_US: Center Layout
+          zh_Hans: 中心结构
+        description:
+          en_US: Classic radial mind map layout.
+          zh_Hans: 经典放射状脑图布局。
+      - value: horizontal
+        label:
+          en_US: Horizontal Layout
+          zh_Hans: 左右结构
+        description:
+          en_US: Left-to-right hierarchical layout.
+          zh_Hans: 从左到右展开的层级布局。
+      - value: free
+        label:
+          en_US: Free Structure
+          zh_Hans: 自由结构
+        description:
+          en_US: Automatically choose center or horizontal layout based on structure complexity.
+          zh_Hans: 根据结构复杂度自动选择中心结构或左右结构。
+  - name: filename
+    type: string
+    required: false
+    label:
+      en_US: Filename
+      zh_Hans: 文件名
+    human_description:
+      en_US: Optional output PNG filename without extension.
+      zh_Hans: PNG输出文件名（可选，无需扩展名）。
+    llm_description: Optional filename for the generated PNG mind map. If not provided, a timestamp will be used.
+    form: llm
+  - name: download_md
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Download MD File
+      zh_Hans: 是否下载输出脑图md文件
+    human_description:
+      en_US: Whether to output the AI-generated mind map Markdown file in addition to the PNG image.
+      zh_Hans: 除了正常输出脑图图片外，是否同时输出AI生成的脑图Markdown文件。
+    form: form
+extra:
+  python:
+    source: tools/ai_mind_map.py

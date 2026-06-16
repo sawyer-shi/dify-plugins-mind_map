@@ -1,4 +1,4 @@
-version: 0.0.7
+version: 0.0.8
 type: plugin
 tags: 
   - productivity
@@ -9,8 +9,8 @@ label:
   en_US: Mind Map Generator
   zh_Hans: 脑图生成器
 description:
-  en_US: "Local Mind Map Generator: Generate beautiful mind maps from Markdown text with center, horizontal and free layouts, supporting watermarks."
-  zh_Hans: "本地脑图生成器：将Markdown文本转换为精美的脑图(思维导图)，支持中心结构、左右结构、自由结构布局，支持添加水印"
+  en_US: "Local Private Mind Map Generator: Generate beautiful mind maps from Markdown or AI-summarized text with center, horizontal and free layouts, supporting watermarks."
+  zh_Hans: "本地私有脑图生成器：将Markdown文本或AI总结后的文本转换为精美脑图(思维导图)，支持中心结构、左右结构、自由结构布局，支持添加水印"
 icon: icon.png
 resource:
   memory: 104857600
@@ -34,7 +34,7 @@ plugins:
   tools:
     - provider/mind_map.yaml
 meta:
-  version: 0.0.7
+  version: 0.0.8
   author: sawyer-shi
   arch:
     - amd64

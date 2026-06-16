@@ -1,15 +1,20 @@
 ﻿# Mind Map Generator Plugin
 
-A powerful mind map generation plugin that intelligently converts Markdown text into beautiful PNG mind maps. Supports both center radial and horizontal layouts, with perfect Chinese environment compatibility.【Mind maps generated locally, no API Key required, no external network or services needed】
+A powerful mind map generation plugin that converts Markdown text into beautiful PNG mind maps and can also use a selected LLM model to summarize plain text into mind map Markdown first. Supports center radial, horizontal, and free layouts, with perfect Chinese environment compatibility. Local Markdown rendering does not require an API key; the AI Mind Map tool uses the LLM model selected in Dify.
 
 ## Version Information
 
-- **Current Version**: v0.0.7
-- **Release Date**: 2026-3-3
+- **Current Version**: v0.0.8
+- **Release Date**: 2026-06-14
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
+- **v0.0.8** (2026-06-14):
+  - Added `AI Mind Map` tool with Dify `model-selector` support
+  - Supports AI summarization from plain text into mind map Markdown
+  - Supports center, horizontal, and free layout output modes
+  - Supports optional Markdown file download for AI-generated mind map structure
 - **v0.0.7** (2026-3-3): 
   - Added MD file download option for all layouts (Center, Horizontal, Free)
   - New `download_md` parameter (default: false) - when enabled, outputs both PNG mind map and original Markdown file
@@ -40,6 +45,14 @@ A powerful mind map generation plugin that intelligently converts Markdown text 
 
 - **Smart Free Structure Layout**: Automatically analyzes content complexity and tree depth to choose the best layout (Center Radial for simple/conceptual maps, Horizontal for deep/complex hierarchies).
 
+### AI Mind Map (New in v0.0.8)
+The `AI Mind Map` tool lets users choose an LLM model in Dify, input plain text, and generate a mind map automatically:
+
+- **LLM Model Selection**: Uses Dify `model-selector`, so the workflow user can choose any available LLM model.
+- **Automatic Markdown Summary**: Converts long plain text into concise mind map Markdown.
+- **Layout Mode**: Supports `center`, `horizontal`, and `free` output modes.
+- **Optional MD Download**: Can output the AI-generated Markdown file together with the PNG image.
+
 
 ### Watermark Support (New in v0.0.6)
 Add custom watermarks to your mind maps with extensive customization options:
@@ -65,16 +78,40 @@ Add custom watermarks to your mind maps with extensive customization options:
 - **Memory Optimization**: 100MB memory limit with efficient resource management
 
 ### Technical Advantages
-- **Local Generation**: Mind maps generated locally, no API Key required, no external network or services needed
-- **Secure and Reliable**: No data leakage, completely offline processing, protecting user privacy
+- **Local Rendering**: Markdown-to-PNG rendering runs locally, no external mind map service required
+- **Privacy-aware Workflow**: Markdown rendering is local. The `AI Mind Map` tool sends `text_content` only to the LLM model selected in Dify.
 - **Pure Python Implementation**: No external dependencies like Node.js required
 - **High-Quality Output**: 150 DPI PNG images with Bézier curve smooth connections
 - **Multi-platform Compatibility**: Full support for Windows, macOS, and Linux
 
+## Tools
+
+### `ai_mind_map`
+
+Generate a mind map from plain text with the help of a selected LLM model.
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `model_config` | Yes | LLM model selected in Dify. |
+| `text_content` | Yes | Plain text to summarize into a mind map. |
+| `layout_mode` | No | `center`, `horizontal`, or `free`. Default: `free`. |
+| `filename` | No | Output PNG filename without extension. |
+| `download_md` | No | Output the AI-generated Markdown file as well. Default: `false`. |
+
+Example:
+
+```text
+text_content: Paste a product requirement, meeting notes, article, or study material.
+layout_mode: free
+download_md: true
+```
+
+The tool first asks the selected LLM to generate clean mind map Markdown, then renders the PNG locally.
+
 ## Developer Information
 
 - **Author**: [@sawyer-shi](https://github.com/sawyer-shi)
-- **Email**: sawyer36@foxmail.com
+- **Email**: sawyer36@foxmail.com 【Currently looking for new job opportunities】
 - **License**: Apache License 2.0
 - **Source Code**: https://github.com/sawyer-shi/dify-plugins-mind_map
 - **Support**: Through Dify platform and GitHub Issues

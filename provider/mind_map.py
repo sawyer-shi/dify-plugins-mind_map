@@ -1,6 +1,7 @@
 from typing import Any, List
 from dify_plugin import ToolProvider
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
+from tools.ai_mind_map import AIMindMapTool
 from tools.mind_map_center import MindMapCenterTool
 from tools.mind_map_horizontal import MindMapHorizontalTool
 from tools.mind_map_free import MindMapFreeTool
@@ -19,7 +20,7 @@ class MindMapProvider(ToolProvider):
         """
         返回可用的工具列表
         """
-        return [MindMapCenterTool, MindMapHorizontalTool, MindMapFreeTool]
+        return [MindMapCenterTool, MindMapHorizontalTool, MindMapFreeTool, AIMindMapTool]
 
 
 # 创建provider实例
