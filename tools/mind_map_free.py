@@ -334,12 +334,12 @@ class MindMapFreeTool(Tool):
         try:
             font_file = self._setup_pil_chinese_font(temp_dir)
             
-            import matplotlib
-            matplotlib.use('Agg')
+            from tools.mpl_compat import import_matplotlib_agg
+            import_matplotlib_agg()
             import matplotlib.pyplot as plt
             import numpy as np
             from PIL import Image, ImageDraw
-            
+
             self._calculate_subtree_weight(tree_data)
             
             branch_colors = [
@@ -820,12 +820,12 @@ class MindMapFreeTool(Tool):
         try:
             font_file = self._setup_pil_chinese_font(temp_dir)
             
-            import matplotlib
-            matplotlib.use('Agg')
+            from tools.mpl_compat import import_matplotlib_agg
+            import_matplotlib_agg()
             import matplotlib.pyplot as plt
             import numpy as np
             from PIL import Image, ImageDraw
-            
+
             # 1. Calc heights AND widths
             self._calculate_subtree_layout_data(tree_data)
             

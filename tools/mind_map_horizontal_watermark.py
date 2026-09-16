@@ -388,8 +388,8 @@ class MindMapHorizontalWatermarkTool(Tool):
             # Setup fonts
             font_file = self._setup_pil_chinese_font(temp_dir)
             
-            import matplotlib
-            matplotlib.use('Agg')
+            from tools.mpl_compat import import_matplotlib_agg
+            import_matplotlib_agg()
             import matplotlib.pyplot as plt
             import numpy as np
             from PIL import Image, ImageDraw

@@ -11,6 +11,7 @@ A powerful mind map generation plugin that converts Markdown text into beautiful
 
 ### Version History
 - **v0.0.9** (2026-09-16):
+  - Fixed image generation failure on newer plugin daemon versions (Dify 1.x): matplotlib font detection calls `fc-list` via subprocess, which fails with `TypeError: child watchers are only available on the default loop` under the gevent monkey-patching applied by `dify_plugin`; the matplotlib import is now isolated from the patched subprocess
   - Replaced the embedded font (Microsoft YaHei) with the open-source Noto Sans SC (SIL Open Font License 1.1), removing the font redistribution licensing risk
   - Reduced plugin package size from ~20MB to ~8MB
   - Added the OFL 1.1 license file for the bundled font (`fonts/OFL-LICENSE.txt`)
