@@ -17,6 +17,7 @@ from typing import Any, Dict, Generator, List, Tuple
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
+from tools.themes import get_theme
 from .watermark_utils import add_watermark
 
 class MindMapCenterWatermarkTool(Tool):
@@ -241,7 +242,7 @@ class MindMapCenterWatermarkTool(Tool):
         except Exception:
             return len(str(text)) * 15 + 20, 40 # Rough fallback
 
-    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
+    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
         使用PIL绘制中文文本
         """
@@ -292,7 +293,7 @@ class MindMapCenterWatermarkTool(Tool):
             
             # 绘制圆角矩形
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                 radius=5, fill='white', outline=color, width=border_width)
+                                 radius=5, fill=node_fill, outline=color, width=border_width)
             
             # 文本居中
             try:
@@ -309,11 +310,12 @@ class MindMapCenterWatermarkTool(Tool):
 
     def _generate_png_mindmap(self, tree_data: dict, output_file: str, temp_dir: str,
                               watermark_text: str = None, opacity: int = 40,
-                              layout: str = 'corners') -> bool:
+                              layout: str = 'corners', theme=None) -> bool:
         """
         Generate PNG mind map with free structure layout (Collision-free Radial)
         """
         try:
+            theme = get_theme(theme)
             # 设置PIL中文字体
             font_file = self._setup_pil_chinese_font(temp_dir)
             
@@ -327,10 +329,7 @@ class MindMapCenterWatermarkTool(Tool):
             self._calculate_subtree_weight(tree_data)
             
             # 颜色
-            branch_colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
-                '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
-            ]
+            branch_colors = theme['branch_colors']
             
             # Store layout results: {'x', 'y', 'w', 'h', 'text', 'depth', 'color', 'children': []}
             layout_nodes = []
@@ -409,7 +408,7 @@ class MindMapCenterWatermarkTool(Tool):
                 if depth_level == 1:
                     # Root node
                     x, y = 0, 0
-                    node_color = '#333333'
+                    node_color = theme['root_color']
                     current_radius = 0
                 else:
                     node_color = inherited_color
@@ -512,7 +511,7 @@ class MindMapCenterWatermarkTool(Tool):
                         current_angle += child_angle_step
 
             # Start Layout
-            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, '#333333', parent_radius=0, parent_size=None, node_id='root')
+            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, theme['root_color'], parent_radius=0, parent_size=None, node_id='root')
             
             # Calculate dynamic canvas size with enhanced margin
             if not layout_nodes:
@@ -612,7 +611,7 @@ class MindMapCenterWatermarkTool(Tool):
             ax.set_position([0, 0, 1, 1]) # Occupy full figure
             
             temp_base_file = os.path.join(temp_dir, "base_center_mindmap.png")
-            plt.savefig(temp_base_file, dpi=dpi, facecolor='white', edgecolor='none', format='png')
+            plt.savefig(temp_base_file, dpi=dpi, facecolor=theme['background'], edgecolor='none', format='png')
             plt.close()
             
             # Open with PIL to draw text
@@ -640,7 +639,7 @@ class MindMapCenterWatermarkTool(Tool):
                 self._draw_text_with_pil(
                     base_img, draw, px, py,
                     node['text'], node['depth'], 
-                    node['color'], font_file
+                    node['color'], font_file, theme['node_fill']
                 )
             
             base_img.save(output_file, 'PNG')
@@ -664,6 +663,7 @@ class MindMapCenterWatermarkTool(Tool):
             watermark_text = tool_parameters.get('watermark_text', '')
             opacity = tool_parameters.get('opacity', 40)
             watermark_layout = tool_parameters.get('watermark_layout', 'tile')
+            theme_name = tool_parameters.get('theme', 'classic')
 
             if not markdown_content:
                 yield self.create_text_message('Center mind map generation failed: No Markdown content provided.')
@@ -680,7 +680,7 @@ class MindMapCenterWatermarkTool(Tool):
                 
                 tree_data = self._parse_markdown_to_tree(markdown_content)
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir,
-                                                     watermark_text, opacity, watermark_layout)
+                                                     watermark_text, opacity, watermark_layout, theme_name)
                 
                 if success and os.path.exists(temp_output_path):
                     with open(temp_output_path, 'rb') as f:

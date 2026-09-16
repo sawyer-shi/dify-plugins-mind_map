@@ -13,6 +13,10 @@
 
 ### 版本历史
 - **v0.0.9** (2026-09-16):
+  - 所有工具新增主题选择：`经典白`（默认，外观与之前完全一致）、`暗夜`、`极光`
+  - 增强守护进程兼容性：matplotlib ≥ 3.11 时启用官方 `MPL_IGNORE_SYSTEM_FONTS` 开关完全跳过系统字体扫描，老版本回退到 subprocess 隔离方案
+  - 插件启动时增加渲染器预热（matplotlib/numpy/PIL 导入 + 微型渲染 + 字体探测），避免首次请求超时
+  - manifest 补充 `privacy`、`repo`、`minimum_dify_version` 字段；`dify_plugin` 依赖升级到 >= 0.9.0
   - 修复新版插件守护进程（Dify 1.x）下图片生成失败的问题：matplotlib 字体探测通过 subprocess 调用 fc-list，在 dify_plugin 的 gevent monkey-patch 环境下触发 `TypeError: child watchers are only available on the default loop`，现已将 matplotlib 导入与被补丁的 subprocess 隔离
   - 将内置字体从微软雅黑替换为开源的思源黑体 Noto Sans SC（SIL Open Font License 1.1 协议），消除字体再分发的版权风险
   - 插件包体积从约 20MB 缩减到约 8MB

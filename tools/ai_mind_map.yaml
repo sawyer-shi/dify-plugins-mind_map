@@ -89,6 +89,30 @@ parameters:
       en_US: Whether to output the AI-generated mind map Markdown file in addition to the PNG image.
       zh_Hans: 除了正常输出脑图图片外，是否同时输出AI生成的脑图Markdown文件。
     form: form
+  - name: theme
+    type: select
+    required: false
+    default: classic
+    label:
+      en_US: Theme
+      zh_Hans: 主题
+    human_description:
+      en_US: Color theme of the mind map (classic white, dark, or aurora)
+      zh_Hans: 脑图配色主题（经典白、暗夜、极光）
+    form: form
+    options:
+      - value: classic
+        label:
+          en_US: Classic
+          zh_Hans: 经典白
+      - value: dark
+        label:
+          en_US: Dark
+          zh_Hans: 暗夜
+      - value: aurora
+        label:
+          en_US: Aurora
+          zh_Hans: 极光
 extra:
   python:
     source: tools/ai_mind_map.py

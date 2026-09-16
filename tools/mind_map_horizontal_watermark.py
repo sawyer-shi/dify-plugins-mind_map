@@ -16,6 +16,7 @@ from typing import Any, Dict, Generator, List
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
+from tools.themes import get_theme
 from .watermark_utils import add_watermark
 
 class MindMapHorizontalWatermarkTool(Tool):
@@ -219,14 +220,14 @@ class MindMapHorizontalWatermarkTool(Tool):
         node['_subtree_height'] = max(base_node_height, children_total_height)
         return node['_subtree_height']
 
-    def _assign_coordinates_to_tree(self, node, x, y_center, branch_colors, inherited_color, depth_level):
+    def _assign_coordinates_to_tree(self, node, x, y_center, branch_colors, inherited_color, depth_level, root_color='#333333'):
         """
         Pass 2: Assign coordinates using variable width for precise spacing.
         """
         children = node.get('children', [])
         
         if depth_level == 1:
-            color = '#333333'
+            color = root_color
         else:
             color = inherited_color
             
@@ -323,7 +324,7 @@ class MindMapHorizontalWatermarkTool(Tool):
         
         ax.plot(x, y, color=color, linewidth=linewidth, alpha=0.7)
 
-    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
+    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
         Draw text using PIL with high quality rendering
         """
@@ -366,7 +367,7 @@ class MindMapHorizontalWatermarkTool(Tool):
             box_y2 = y + box_height // 2
             
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                 radius=6, fill='white', outline=color, width=border_width)
+                                  radius=6, fill=node_fill, outline=color, width=border_width)
             
             try:
                 draw.text((x, y), safe_text, font=font, fill=color, anchor='mm')
@@ -380,7 +381,7 @@ class MindMapHorizontalWatermarkTool(Tool):
 
     def _generate_png_mindmap(self, tree_data: dict, output_file: str, temp_dir: str,
                               watermark_text: str = None, opacity: int = 40,
-                              layout: str = 'corners') -> bool:
+                              layout: str = 'corners', theme=None) -> bool:
         """
         Generate PNG mind map using optimized layout engine with Watermark
         """
@@ -398,11 +399,9 @@ class MindMapHorizontalWatermarkTool(Tool):
             self._calculate_subtree_layout_data(tree_data)
             
             # 2. Assign Coordinates (Store in tree nodes)
-            branch_colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
-                '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
-            ]
-            self._assign_coordinates_to_tree(tree_data, 0, 0, branch_colors, '#333333', 1)
+            theme = get_theme(theme)
+            branch_colors = theme['branch_colors']
+            self._assign_coordinates_to_tree(tree_data, 0, 0, branch_colors, theme['root_color'], 1, theme['root_color'])
             
             # 3. Collect nodes for determining canvas size
             all_nodes = self._get_all_nodes_with_coords(tree_data)
@@ -455,7 +454,7 @@ class MindMapHorizontalWatermarkTool(Tool):
             ax.set_position([0, 0, 1, 1])
             
             temp_base_file = os.path.join(temp_dir, "base_horizontal.png")
-            plt.savefig(temp_base_file, dpi=100, facecolor='white', edgecolor='none')
+            plt.savefig(temp_base_file, dpi=100, facecolor=theme['background'], edgecolor='none')
             plt.close()
             
             # 6. Draw Text with PIL
@@ -480,7 +479,7 @@ class MindMapHorizontalWatermarkTool(Tool):
                 px, py = to_px(node['x'], node['y'])
                 self._draw_text_with_pil(base_img, draw, px, py, 
                                        node['content'], node['depth'], 
-                                       node['color'], font_file)
+                                       node['color'], font_file, theme['node_fill'])
             
             base_img.save(output_file, 'PNG')
             return True
@@ -503,6 +502,7 @@ class MindMapHorizontalWatermarkTool(Tool):
             watermark_text = tool_parameters.get('watermark_text', '')
             opacity = tool_parameters.get('opacity', 40)
             watermark_layout = tool_parameters.get('watermark_layout', 'tile')
+            theme_name = tool_parameters.get('theme', 'classic')
 
             if not markdown_content:
                 yield self.create_text_message('Generation failed: No Markdown content.')
@@ -519,7 +519,7 @@ class MindMapHorizontalWatermarkTool(Tool):
                 tree_data = self._parse_markdown_to_tree(markdown_content)
                 
                 success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir,
-                                                     watermark_text, opacity, watermark_layout)
+                                                     watermark_text, opacity, watermark_layout, theme_name)
                 
                 if success and os.path.exists(temp_output_path):
                     with open(temp_output_path, 'rb') as f:

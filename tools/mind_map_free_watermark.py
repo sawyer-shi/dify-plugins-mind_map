@@ -18,6 +18,7 @@ from typing import Any, Dict, Generator, List, Tuple
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
+from tools.themes import get_theme
 from .watermark_utils import add_watermark
 
 class MindMapFreeWatermarkTool(Tool):
@@ -207,7 +208,7 @@ class MindMapFreeWatermarkTool(Tool):
         # Use horizontal layout for deep or large structures
         return 'horizontal'
 
-    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file):
+    def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
         Unified PIL text drawing function
         """
@@ -258,7 +259,7 @@ class MindMapFreeWatermarkTool(Tool):
             
             # Draw rounded rectangle
             draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                 radius=6, fill='white', outline=color, width=border_width)
+                                  radius=6, fill=node_fill, outline=color, width=border_width)
             
             # Draw text centered
             try:
@@ -325,11 +326,12 @@ class MindMapFreeWatermarkTool(Tool):
 
     def _generate_center_layout(self, tree_data: dict, output_file: str, temp_dir: str,
                               watermark_text: str = None, opacity: int = 40,
-                              layout: str = 'corners') -> bool:
+                              layout: str = 'corners', theme=None) -> bool:
         """
         Generate Center/Radial Mind Map with optimized compact layout and Watermark
         """
         try:
+            theme = get_theme(theme)
             font_file = self._setup_pil_chinese_font(temp_dir)
             
             from tools.mpl_compat import import_matplotlib_agg
@@ -340,10 +342,7 @@ class MindMapFreeWatermarkTool(Tool):
 
             self._calculate_subtree_weight(tree_data)
             
-            branch_colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
-                '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
-            ]
+            branch_colors = theme['branch_colors']
             
             layout_nodes = []
             placed_boxes = []
@@ -394,7 +393,7 @@ class MindMapFreeWatermarkTool(Tool):
                 
                 if depth_level == 1:
                     x, y = 0, 0
-                    node_color = '#333333'
+                    node_color = theme['root_color']
                     current_radius = 0
                 else:
                     node_color = inherited_color
@@ -472,7 +471,7 @@ class MindMapFreeWatermarkTool(Tool):
                         
                         current_angle += child_angle_step
 
-            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, '#333333', parent_radius=0, parent_size=None, node_id='root')
+            layout_recursive(tree_data, 0, 0, 0, 2*math.pi, 1, theme['root_color'], parent_radius=0, parent_size=None, node_id='root')
             
             if not layout_nodes:
                 return False
@@ -555,7 +554,7 @@ class MindMapFreeWatermarkTool(Tool):
             ax.set_position([0, 0, 1, 1]) 
             
             temp_base_file = os.path.join(temp_dir, "base_center_mindmap.png")
-            plt.savefig(temp_base_file, dpi=dpi, facecolor='white', edgecolor='none', format='png')
+            plt.savefig(temp_base_file, dpi=dpi, facecolor=theme['background'], edgecolor='none', format='png')
             plt.close()
             
             base_img = Image.open(temp_base_file)
@@ -580,7 +579,7 @@ class MindMapFreeWatermarkTool(Tool):
                 self._draw_text_with_pil(
                     base_img, draw, px, py,
                     node['text'], node['depth'], 
-                    node['color'], font_file
+                    node['color'], font_file, theme['node_fill']
                 )
             
             base_img.save(output_file, 'PNG')
@@ -637,14 +636,14 @@ class MindMapFreeWatermarkTool(Tool):
         node['_subtree_height'] = max(base_node_height, children_total_height)
         return node['_subtree_height']
 
-    def _assign_coordinates_to_tree(self, node, x, y_center, branch_colors, inherited_color, depth_level):
+    def _assign_coordinates_to_tree(self, node, x, y_center, branch_colors, inherited_color, depth_level, root_color='#333333'):
         """
         Pass 2: Assign coordinates using variable width for precise spacing.
         """
         children = node.get('children', [])
         
         if depth_level == 1:
-            color = '#333333'
+            color = root_color
         else:
             color = inherited_color
             
@@ -745,11 +744,12 @@ class MindMapFreeWatermarkTool(Tool):
 
     def _generate_horizontal_layout(self, tree_data: dict, output_file: str, temp_dir: str,
                               watermark_text: str = None, opacity: int = 40,
-                              layout: str = 'corners') -> bool:
+                              layout: str = 'corners', theme=None) -> bool:
         """
         Generate Horizontal Mind Map with Watermark
         """
         try:
+            theme = get_theme(theme)
             font_file = self._setup_pil_chinese_font(temp_dir)
             
             from tools.mpl_compat import import_matplotlib_agg
@@ -760,11 +760,8 @@ class MindMapFreeWatermarkTool(Tool):
 
             self._calculate_subtree_layout_data(tree_data)
             
-            branch_colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', 
-                '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#0984E3'
-            ]
-            self._assign_coordinates_to_tree(tree_data, 0, 0, branch_colors, '#333333', 1)
+            branch_colors = theme['branch_colors']
+            self._assign_coordinates_to_tree(tree_data, 0, 0, branch_colors, theme['root_color'], 1, theme['root_color'])
             
             all_nodes = self._get_all_nodes_with_coords(tree_data)
             if not all_nodes:
@@ -809,7 +806,7 @@ class MindMapFreeWatermarkTool(Tool):
             ax.set_position([0, 0, 1, 1])
             
             temp_base_file = os.path.join(temp_dir, "base_horizontal.png")
-            plt.savefig(temp_base_file, dpi=100, facecolor='white', edgecolor='none', format='png')
+            plt.savefig(temp_base_file, dpi=100, facecolor=theme['background'], edgecolor='none', format='png')
             plt.close()
             
             base_img = Image.open(temp_base_file)
@@ -833,7 +830,7 @@ class MindMapFreeWatermarkTool(Tool):
                 px, py = to_px(node['x'], node['y'])
                 self._draw_text_with_pil(base_img, draw, px, py, 
                                        node['content'], node['depth'], 
-                                       node['color'], font_file)
+                                       node['color'], font_file, theme['node_fill'])
             
             base_img.save(output_file, 'PNG')
             return True
@@ -856,6 +853,7 @@ class MindMapFreeWatermarkTool(Tool):
             watermark_text = tool_parameters.get('watermark_text', '')
             opacity = tool_parameters.get('opacity', 40)
             watermark_layout = tool_parameters.get('watermark_layout', 'tile')
+            theme_name = tool_parameters.get('theme', 'classic')
 
             if not markdown_content:
                 yield self.create_text_message('Free mind map generation failed: No Markdown content provided.')
@@ -875,10 +873,10 @@ class MindMapFreeWatermarkTool(Tool):
                 
                 if layout_mode == 'horizontal':
                     success = self._generate_horizontal_layout(tree_data, temp_output_path, temp_dir,
-                                                             watermark_text, opacity, watermark_layout)
+                                                             watermark_text, opacity, watermark_layout, theme_name)
                 else:
                     success = self._generate_center_layout(tree_data, temp_output_path, temp_dir,
-                                                         watermark_text, opacity, watermark_layout)
+                                                         watermark_text, opacity, watermark_layout, theme_name)
                 
                 if success and os.path.exists(temp_output_path):
                     with open(temp_output_path, 'rb') as f:

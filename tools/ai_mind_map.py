@@ -146,6 +146,7 @@ User text:
             layout_mode = self._normalize_layout_mode(tool_parameters.get("layout_mode"))
             filename = str(tool_parameters.get("filename") or "").strip()
             download_md = self._to_bool(tool_parameters.get("download_md", False))
+            theme_name = str(tool_parameters.get("theme") or "classic")
 
             if not llm_model:
                 yield self.create_text_message("AI mind map generation failed: Please select an LLM model.")
@@ -168,6 +169,7 @@ User text:
                 "markdown_content": markdown_content,
                 "filename": filename,
                 "download_md": download_md,
+                "theme": theme_name,
             }
 
             for message in layout_tool._invoke(render_parameters):
@@ -177,6 +179,7 @@ User text:
                 {
                     "success": True,
                     "layout_mode": layout_mode,
+                    "theme": theme_name,
                     "generated_markdown": markdown_content,
                 }
             )
