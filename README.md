@@ -4,12 +4,16 @@ A powerful mind map generation plugin that converts Markdown text into beautiful
 
 ## Version Information
 
-- **Current Version**: v0.0.8
-- **Release Date**: 2026-06-14
+- **Current Version**: v0.0.9
+- **Release Date**: 2026-09-16
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
+- **v0.0.9** (2026-09-16):
+  - Replaced the embedded font (Microsoft YaHei) with the open-source Noto Sans SC (SIL Open Font License 1.1), removing the font redistribution licensing risk
+  - Reduced plugin package size from ~20MB to ~8MB
+  - Added the OFL 1.1 license file for the bundled font (`fonts/OFL-LICENSE.txt`)
 - **v0.0.8** (2026-06-14):
   - Added `AI Mind Map` tool with Dify `model-selector` support
   - Supports AI summarization from plain text into mind map Markdown

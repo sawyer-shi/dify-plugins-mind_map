@@ -35,7 +35,7 @@ class MindMapFreeTool(Tool):
         system = platform.system()
         
         # 优先使用嵌入的字体文件
-        embedded_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'chinese_font.ttc')
+        embedded_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'NotoSansSC-Regular.otf')
         embedded_font_path = os.path.abspath(embedded_font_path)
         
         if os.path.exists(embedded_font_path):
