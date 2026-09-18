@@ -1,3 +1,4 @@
+import colorsys
 import os
 import re
 import threading
@@ -209,3 +210,84 @@ def node_height_units(text, depth_level):
     base = max(1.00 - 0.04 * (eff - 1), 0.78)
     extra = max(0.46 - 0.025 * (eff - 1), 0.34)
     return base + max(line_count - 1, 0) * extra
+
+
+def _legacy_border(depth_level) -> int:
+    return 4 if int(depth_level) <= 1 else 3
+
+
+def node_border_width(depth_level) -> int:
+    level = max(1, min(int(depth_level), 5))
+    if level >= 5:
+        return _legacy_border(5)
+    root_w = _legacy_border(1) * 5
+    target = _legacy_border(5)
+    return max(target, int(round(root_w - (root_w - target) * (level - 1) / 4.0)))
+
+
+def node_corner_radius(depth_level) -> int:
+    level = max(1, min(int(depth_level), 5))
+    base = 6
+    if level >= 5:
+        return base
+    root_r = base * 5
+    return max(base, int(round(root_r - (root_r - base) * (level - 1) / 4.0)))
+
+
+def inner_corner_radius(depth_level) -> int:
+    return max(6, int(round(node_corner_radius(depth_level) - node_border_width(depth_level))))
+
+
+def line_linewidth_for(depth_level) -> float:
+    return node_border_width(depth_level) * 0.72
+
+
+def _hex_to_rgb(color):
+    c = str(color).strip().lstrip("#")
+    if len(c) == 6:
+        return (int(c[0:2], 16) / 255.0, int(c[2:4], 16) / 255.0, int(c[4:6], 16) / 255.0)
+    raise ValueError("bad hex color: %s" % color)
+
+
+def _luminance(color):
+    r, g, b = _hex_to_rgb(color)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def dark_text_color(border_color):
+    try:
+        r, g, b = _hex_to_rgb(border_color)
+    except Exception:
+        return "#1F1F1F"
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    dark_s = min(max(s * 1.15, 0.55), 1.0)
+    dark_v = 0.33
+    if abs(dark_v - v) < 0.18:
+        dark_v = max(v - 0.25, 0.08)
+        dark_s = s
+    dr, dg, db = colorsys.hsv_to_rgb(h, dark_s, dark_v)
+    return "#%02X%02X%02X" % (int(round(dr * 255)), int(round(dg * 255)), int(round(db * 255)))
+
+
+def light_text_color(border_color):
+    try:
+        r, g, b = _hex_to_rgb(border_color)
+    except Exception:
+        return "#F5F5F5"
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    light_v = 0.90
+    light_s = min(max(s * 0.9, 0.10), 0.55)
+    if abs(light_v - v) < 0.18:
+        light_v = min(v + 0.30, 0.97)
+        light_s = s
+    lr, lg, lb = colorsys.hsv_to_rgb(h, light_s, light_v)
+    return "#%02X%02X%02X" % (int(round(lr * 255)), int(round(lg * 255)), int(round(lb * 255)))
+
+
+def contrast_text_color(border_color, bg_color):
+    try:
+        if _luminance(bg_color) >= 0.5:
+            return dark_text_color(border_color)
+        return light_text_color(border_color)
+    except Exception:
+        return border_color

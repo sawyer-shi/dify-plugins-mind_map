@@ -12,6 +12,7 @@ A powerful mind map generation plugin that converts Markdown text into beautiful
 ### Version History
 - **v0.0.10** (2026-09-18):
   - Ported proven improvements from the marketplace edition: CJK-aware automatic text wrapping for long node labels (words and digit runs stay unbroken), serialized rendering with gevent-aware threadpool execution (`RENDER_GATE` / `run_heavy`), transmission gating for large blobs (`SEND_GATE`), an 8300px pixel budget with automatic DPI downscaling for oversized documents, and pyplot-free figure creation
+  - Ported the marketplace visual style: double-layer nodes (colored outer ring + theme inner fill + contrast-aware text color), depth-tapered thick borders (20px at root down to 3px) and thick branch lines, with large rounded corners on shallow nodes; adapted to all four themes
   - Added theme selection to all tools: `Classic White`, `Dark Night`, `Eye-care Yellow` (warm paper), and `Industrial Gray` (dark canvas with subtle grid, **default theme**); `Classic White` keeps the previous appearance
   - Improved daemon compatibility: on matplotlib >= 3.11 the official `MPL_IGNORE_SYSTEM_FONTS` switch is used to skip system font scanning entirely; older versions fall back to the subprocess isolation workaround
   - Added renderer warm-up at plugin startup (matplotlib/numpy/PIL import + micro render + font probe) to avoid first-request timeouts

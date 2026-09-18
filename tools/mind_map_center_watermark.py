@@ -18,7 +18,9 @@ from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
 from tools.themes import draw_canvas_grid, get_theme
-from tools.mind_map_style import RENDER_GATE, SEND_GATE, budget_dpi, load_font, new_figure, render_scale, run_heavy, wrap_text
+from tools.mind_map_style import (RENDER_GATE, SEND_GATE, budget_dpi, contrast_text_color,
+                                    inner_corner_radius, line_linewidth_for, load_font, new_figure,
+                                    node_border_width, node_corner_radius, render_scale, run_heavy, wrap_text)
 from .watermark_utils import add_watermark
 
 class MindMapCenterWatermarkTool(Tool):
@@ -201,7 +203,7 @@ class MindMapCenterWatermarkTool(Tool):
 
     def _measure_text_size(self, text: str, depth_level: int, font_file: str = None) -> Tuple[int, int]:
         """
-        Estimate text dimensions using PIL font (wrap-aware)
+        Estimate node dimensions (wrap-aware, border-aware)
         """
         try:
             from PIL import Image, ImageDraw
@@ -222,14 +224,16 @@ class MindMapCenterWatermarkTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
 
-            padding = max(18 - depth_level * 2, 10)
-            return text_width + 2 * padding, text_height + 2 * padding
+            pad_x = max(18 - depth_level * 2, 10)
+            pad_y = max(14 - depth_level, 9)
+            border = node_border_width(depth_level)
+            return text_width + 2 * pad_x + 2 * border, text_height + 2 * pad_y + 2 * border
 
         except Exception:
             return len(str(text)) * 15 + 20, 40
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
-        Draw node text with PIL (wrap-aware, render-scale aware)
+        Draw double-layer node: colored outer ring, theme inner fill, contrast text
         """
         try:
             px = render_scale()
@@ -248,29 +252,36 @@ class MindMapCenterWatermarkTool(Tool):
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
 
-            padding = max(int(round((18 - depth_level * 2) * px)), int(round(10 * px)))
-            border_width = 4 if depth_level == 1 else 3
-            border_width = max(1, int(round(border_width * px)))
+            pad_x = max(int(round((18 - depth_level * 2) * px)), int(round(10 * px)))
+            pad_y = max(int(round((14 - depth_level) * px)), int(round(9 * px)))
+            border = max(1, int(round(node_border_width(depth_level) * px)))
 
-            box_width = text_width + 2 * padding
-            box_height = text_height + 2 * padding
+            inner_w = text_width + 2 * pad_x
+            inner_h = text_height + 2 * pad_y
+            outer_w = inner_w + 2 * border
+            outer_h = inner_h + 2 * border
 
-            box_x1 = x - box_width / 2
-            box_y1 = y - box_height / 2
-            box_x2 = x + box_width / 2
-            box_y2 = y + box_height / 2
+            outer_r = max(1, int(round(node_corner_radius(depth_level) * px)))
+            inner_r = max(1, int(round(inner_corner_radius(depth_level) * px)))
 
-            radius = max(1, int(round(5 * px)))
-            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2],
-                                   radius=min(radius, int(box_width / 2), int(box_height / 2)),
-                                   fill=node_fill, outline=color, width=border_width)
+            draw.rounded_rectangle(
+                [x - outer_w / 2.0, y - outer_h / 2.0, x + outer_w / 2.0, y + outer_h / 2.0],
+                radius=min(outer_r, int(outer_w / 2), int(outer_h / 2)),
+                fill=color,
+            )
+            draw.rounded_rectangle(
+                [x - inner_w / 2.0, y - inner_h / 2.0, x + inner_w / 2.0, y + inner_h / 2.0],
+                radius=min(inner_r, int(inner_w / 2), int(inner_h / 2)),
+                fill=node_fill,
+            )
 
+            fill_color = contrast_text_color(color, node_fill)
             try:
-                draw.multiline_text((x, y), display, font=font, fill=color,
+                draw.multiline_text((x, y), display, font=font, fill=fill_color,
                                     anchor="mm", align="center", spacing=spacing)
             except TypeError:
                 draw.multiline_text((x - text_width / 2, y - text_height / 2), display,
-                                    font=font, fill=color, align="center", spacing=spacing)
+                                    font=font, fill=fill_color, align="center", spacing=spacing)
 
         except Exception:
             pass
@@ -567,7 +578,7 @@ class MindMapCenterWatermarkTool(Tool):
             for node in layout_nodes:
                 if node['depth'] > 1:
                     # Draw line from parent
-                    line_width = max(3 - node['depth'] * 0.5, 1)
+                    line_width = line_linewidth_for(node['depth'])
                     draw_curved_branch_line(node['parent_x'], node['parent_y'], 
                                           node['x'], node['y'], 
                                           color=node['color'], linewidth=line_width)
