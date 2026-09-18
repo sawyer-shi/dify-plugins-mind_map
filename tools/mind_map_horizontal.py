@@ -22,6 +22,7 @@ from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
 from tools.themes import draw_canvas_grid, get_theme
+from tools.mind_map_style import RENDER_GATE, SEND_GATE, budget_dpi, estimate_width_units, load_font, new_figure, node_height_units, render_scale, run_heavy, wrap_text
 
 
 class MindMapHorizontalTool(Tool):
@@ -186,39 +187,9 @@ class MindMapHorizontalTool(Tool):
     
     def _estimate_text_width(self, text: str, depth_level: int) -> float:
         """
-        Estimate text width in coordinate units.
-        This maps text length + font size to our abstract coordinate system.
+        Estimate node width in coordinate units (wrap-aware).
         """
-        # Base unit reference:
-        # In _assign_coordinates, x_step was ~3.5 + len*0.05
-        # Let's make this more precise.
-        # Assume 1 coordinate unit ≈ 40 pixels (just a reference scale)
-        
-        # Rough character width estimation
-        # Chinese/Wide chars: 1.0 width
-        # ASCII/Narrow chars: 0.6 width
-        width_score = 0
-        for char in text:
-            if ord(char) > 127:
-                width_score += 1.0
-            else:
-                width_score += 0.6
-        
-        # Font scale factor decreases with depth
-        # Level 1: Scale 1.0
-        # Level 2: Scale 0.9
-        # ...
-        scale = max(1.0 - (depth_level - 1) * 0.1, 0.6)
-        
-        # Convert to coordinate units
-        # Factor 0.4 found by experimentation to match visual look
-        estimated_width = width_score * scale * 0.4 
-        
-        # Add padding (box borders)
-        estimated_width += 0.8  # Padding
-        
-        return estimated_width
-
+        return estimate_width_units(text, depth_level)
     def _calculate_subtree_layout_data(self, node: dict, depth_level: int = 1) -> float:
         """
         Pass 1: Calculate vertical height AND estimate horizontal width for each node.
@@ -230,7 +201,7 @@ class MindMapHorizontalTool(Tool):
         node['_width'] = self._estimate_text_width(content, depth_level)
         
         # Basic height unit
-        base_node_height = 1.0
+        base_node_height = node_height_units(content, depth_level)
         
         if not children:
             node['_subtree_height'] = base_node_height
@@ -379,64 +350,51 @@ class MindMapHorizontalTool(Tool):
 
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
-        Draw text using PIL with high quality rendering
+        Draw node text with PIL (wrap-aware, render-scale aware)
         """
         try:
-            from PIL import ImageFont
-            
+            px = render_scale()
             safe_text = str(text).strip()
             if not safe_text:
-                safe_text = f"Node"
-            
-            # Dynamic font size (unified with center layout)
-            base_font_size = 42
-            font_size = max(base_font_size - (depth_level * 6), 24)
-            
-            font = None
-            if font_file and os.path.exists(font_file):
-                try:
-                    font = ImageFont.truetype(font_file, font_size)
-                except Exception:
-                    pass
-            
+                safe_text = f"Node{depth_level}"
+
+            font_size = max(int(round((42 - depth_level * 6) * px)), int(round(24 * px)))
+            font = load_font(font_file, font_size)
             if font is None:
-                try:
-                    font = ImageFont.load_default()
-                except:
-                    return
-            
-            # Measure text
-            bbox = draw.textbbox((0, 0), safe_text, font=font)
+                return
+
+            spacing = max(int(font_size * 0.28), max(3, int(round(6 * px))))
+            display = "\n".join(wrap_text(safe_text))
+            bbox = draw.multiline_textbbox((0, 0), display, font=font, spacing=spacing, align="center")
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
-            
-            # Padding (unified with center layout)
-            padding = max(18 - depth_level * 2, 10)
+
+            padding = max(int(round((18 - depth_level * 2) * px)), int(round(10 * px)))
             border_width = 4 if depth_level == 1 else 3
-            
+            border_width = max(1, int(round(border_width * px)))
+
             box_width = text_width + 2 * padding
             box_height = text_height + 2 * padding
-            
-            box_x1 = x - box_width // 2
-            box_y1 = y - box_height // 2
-            box_x2 = x + box_width // 2
-            box_y2 = y + box_height // 2
-            
-            # Draw background
-            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                  radius=6, fill=node_fill, outline=color, width=border_width)
-            
-            # Draw text centered
+
+            box_x1 = x - box_width / 2
+            box_y1 = y - box_height / 2
+            box_x2 = x + box_width / 2
+            box_y2 = y + box_height / 2
+
+            radius = max(1, int(round(5 * px)))
+            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2],
+                                   radius=min(radius, int(box_width / 2), int(box_height / 2)),
+                                   fill=node_fill, outline=color, width=border_width)
+
             try:
-                draw.text((x, y), safe_text, font=font, fill=color, anchor='mm')
+                draw.multiline_text((x, y), display, font=font, fill=color,
+                                    anchor="mm", align="center", spacing=spacing)
             except TypeError:
-                text_x = x - text_width / 2
-                text_y = y - (bbox[1] + text_height / 2)
-                draw.text((text_x, text_y), safe_text, font=font, fill=color)
-                
+                draw.multiline_text((x - text_width / 2, y - text_height / 2), display,
+                                    font=font, fill=color, align="center", spacing=spacing)
+
         except Exception:
             pass
-
     def _generate_png_mindmap(self, tree_data: dict, output_file: str, temp_dir: str, theme=None) -> bool:
         """
         Generate PNG mind map using optimized layout engine
@@ -497,8 +455,8 @@ class MindMapHorizontalTool(Tool):
             if fig_width > 200: fig_width = 200
             if fig_height > 200: fig_height = 200
             
-            plt.close('all')
-            fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), dpi=100)
+            render_dpi = budget_dpi(fig_width, fig_height)
+            fig, ax = new_figure(fig_width, fig_height, render_dpi)
             ax.set_xlim(min_x - margin_x, max_x + margin_x)
             ax.set_ylim(min_y - margin_y, max_y + margin_y)
             ax.axis('off')
@@ -507,12 +465,10 @@ class MindMapHorizontalTool(Tool):
             self._draw_lines_recursive(ax, tree_data)
             
             # 5. Save Base Image
-            plt.tight_layout(pad=0)
             ax.set_position([0, 0, 1, 1])
             
             temp_base_file = os.path.join(temp_dir, "base_horizontal.png")
-            plt.savefig(temp_base_file, dpi=100, facecolor=theme['background'], edgecolor='none')
-            plt.close()
+            fig.savefig(temp_base_file, dpi=render_dpi, facecolor=theme['background'], edgecolor='none')
             
             # 6. Draw Text with PIL
             base_img = Image.open(temp_base_file)
@@ -566,7 +522,8 @@ class MindMapHorizontalTool(Tool):
                 
                 tree_data = self._parse_markdown_to_tree(markdown_content)
                 
-                success = self._generate_png_mindmap(tree_data, temp_output_path, temp_dir, theme_name)
+                with RENDER_GATE:
+                    success = run_heavy(self._generate_png_mindmap, tree_data, temp_output_path, temp_dir, theme_name)
                 
                 if success and os.path.exists(temp_output_path):
                     with open(temp_output_path, 'rb') as f:
@@ -590,7 +547,8 @@ class MindMapHorizontalTool(Tool):
                         "success": True
                     }
                     
-                    yield blob_message
+                    with SEND_GATE:
+                        yield blob_message
                     yield self.create_text_message(f'Horizontal mind map generated successfully! Image File Size: {size_text}')
                     yield self.create_json_message(json_data)
                     

@@ -4,13 +4,14 @@ A powerful mind map generation plugin that converts Markdown text into beautiful
 
 ## Version Information
 
-- **Current Version**: v0.0.9
-- **Release Date**: 2026-09-16
+- **Current Version**: v0.0.10
+- **Release Date**: 2026-09-18
 - **Compatibility**: Dify Plugin Framework
 - **Python Version**: 3.12+
 
 ### Version History
-- **v0.0.9** (2026-09-16):
+- **v0.0.10** (2026-09-18):
+  - Ported proven improvements from the marketplace edition: CJK-aware automatic text wrapping for long node labels (words and digit runs stay unbroken), serialized rendering with gevent-aware threadpool execution (`RENDER_GATE` / `run_heavy`), transmission gating for large blobs (`SEND_GATE`), an 8300px pixel budget with automatic DPI downscaling for oversized documents, and pyplot-free figure creation
   - Added theme selection to all tools: `Classic White`, `Dark Night`, `Eye-care Yellow` (warm paper), and `Industrial Gray` (dark canvas with subtle grid, **default theme**); `Classic White` keeps the previous appearance
   - Improved daemon compatibility: on matplotlib >= 3.11 the official `MPL_IGNORE_SYSTEM_FONTS` switch is used to skip system font scanning entirely; older versions fall back to the subprocess isolation workaround
   - Added renderer warm-up at plugin startup (matplotlib/numpy/PIL import + micro render + font probe) to avoid first-request timeouts

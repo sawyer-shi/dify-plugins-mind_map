@@ -19,6 +19,7 @@ from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
 from tools.themes import draw_canvas_grid, get_theme
+from tools.mind_map_style import RENDER_GATE, SEND_GATE, budget_dpi, estimate_width_units, load_font, new_figure, node_height_units, render_scale, run_heavy, wrap_text
 
 
 class MindMapFreeTool(Tool):
@@ -214,72 +215,51 @@ class MindMapFreeTool(Tool):
 
     def _draw_text_with_pil(self, img, draw, x, y, text, depth_level, color, font_file, node_fill='white'):
         """
-        Unified PIL text drawing function
+        Draw node text with PIL (wrap-aware, render-scale aware)
         """
         try:
-            from PIL import ImageFont, ImageDraw
-            
+            px = render_scale()
             safe_text = str(text).strip()
             if not safe_text:
                 safe_text = f"Node{depth_level}"
-            
-            # Font size
-            base_font_size = 42
-            font_size = max(base_font_size - (depth_level * 6), 24)
-            
-            # Load font
-            font = None
-            if font_file and os.path.exists(font_file):
-                try:
-                    font = ImageFont.truetype(font_file, font_size)
-                except Exception:
-                    pass
-            
+
+            font_size = max(int(round((42 - depth_level * 6) * px)), int(round(24 * px)))
+            font = load_font(font_file, font_size)
             if font is None:
-                try:
-                    font = ImageFont.load_default()
-                except:
-                    return
-            
-            # Measure text
-            bbox = draw.textbbox((0, 0), safe_text, font=font)
+                return
+
+            spacing = max(int(font_size * 0.28), max(3, int(round(6 * px))))
+            display = "\n".join(wrap_text(safe_text))
+            bbox = draw.multiline_textbbox((0, 0), display, font=font, spacing=spacing, align="center")
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
-            
-            # Padding
-            padding = max(18 - depth_level * 2, 10)
-            if depth_level == 1:
-                border_width = 4
-            else:
-                border_width = 3
-            
+
+            padding = max(int(round((18 - depth_level * 2) * px)), int(round(10 * px)))
+            border_width = 4 if depth_level == 1 else 3
+            border_width = max(1, int(round(border_width * px)))
+
             box_width = text_width + 2 * padding
             box_height = text_height + 2 * padding
-            
-            box_x1 = x - box_width // 2
-            box_y1 = y - box_height // 2
-            box_x2 = x + box_width // 2
-            box_y2 = y + box_height // 2
-            
-            # Draw rounded rectangle
-            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], 
-                                  radius=6, fill=node_fill, outline=color, width=border_width)
-            
-            # Draw text centered
+
+            box_x1 = x - box_width / 2
+            box_y1 = y - box_height / 2
+            box_x2 = x + box_width / 2
+            box_y2 = y + box_height / 2
+
+            radius = max(1, int(round(5 * px)))
+            draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2],
+                                   radius=min(radius, int(box_width / 2), int(box_height / 2)),
+                                   fill=node_fill, outline=color, width=border_width)
+
             try:
-                draw.text((x, y), safe_text, font=font, fill=color, anchor='mm')
+                draw.multiline_text((x, y), display, font=font, fill=color,
+                                    anchor="mm", align="center", spacing=spacing)
             except TypeError:
-                text_x = x - text_width / 2
-                text_y = y - (bbox[1] + text_height / 2)
-                draw.text((text_x, text_y), safe_text, font=font, fill=color)
-            
+                draw.multiline_text((x - text_width / 2, y - text_height / 2), display,
+                                    font=font, fill=color, align="center", spacing=spacing)
+
         except Exception:
             pass
-
-    # ==========================================
-    # Center (Radial) Layout Specific Methods
-    # ==========================================
-
     def _calculate_subtree_weight(self, node: dict) -> int:
         """Calculate weight of subtree for radial distribution"""
         if not node.get('children'):
@@ -291,43 +271,33 @@ class MindMapFreeTool(Tool):
         return weight
 
     def _measure_text_size(self, text: str, depth_level: int, font_file: str = None) -> Tuple[int, int]:
-        """Estimate text dimensions for collision detection in Center mode"""
+        """
+        Estimate text dimensions using PIL font (wrap-aware)
+        """
         try:
-            from PIL import ImageFont, ImageDraw, Image
-            
+            from PIL import Image, ImageDraw
+
             safe_text = str(text).strip()
             if not safe_text:
                 safe_text = f"Node{depth_level}"
-            
-            base_font_size = 42
-            font_size = max(base_font_size - (depth_level * 6), 24)
-            
-            font = None
-            if font_file and os.path.exists(font_file):
-                try:
-                    font = ImageFont.truetype(font_file, font_size)
-                except Exception:
-                    pass
-            
+
+            font_size = max(42 - depth_level * 6, 24)
+            font = load_font(font_file, font_size)
             if font is None:
-                try:
-                    font = ImageFont.load_default()
-                except:
-                    return len(safe_text) * font_size * 0.6 + 20, font_size + 20
-            
-            dummy_img = Image.new('RGB', (1, 1))
-            draw = ImageDraw.Draw(dummy_img)
-            
-            bbox = draw.textbbox((0, 0), safe_text, font=font)
+                return len(safe_text) * font_size * 0.6 + 20, font_size + 20
+
+            spacing = max(int(font_size * 0.28), 6)
+            display = "\n".join(wrap_text(safe_text))
+            draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+            bbox = draw.multiline_textbbox((0, 0), display, font=font, spacing=spacing, align="center")
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
-            
+
             padding = max(18 - depth_level * 2, 10)
             return text_width + 2 * padding, text_height + 2 * padding
-            
+
         except Exception:
             return len(str(text)) * 15 + 20, 40
-
     def _generate_center_layout(self, tree_data: dict, output_file: str, temp_dir: str, theme=None) -> bool:
         """
         Generate Center/Radial Mind Map with optimized compact layout
@@ -570,8 +540,8 @@ class MindMapFreeTool(Tool):
             fig_height = total_height / dpi
             
             # Re-create figure with calculated size
-            plt.close() # Close initial dummy figure
-            fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), dpi=dpi)
+            dpi = budget_dpi(fig_width, fig_height)
+            fig, ax = new_figure(fig_width, fig_height, dpi)
             
             # Set limits to match our coordinate system
             ax.set_xlim(min_x - margin, max_x + margin)
@@ -623,12 +593,10 @@ class MindMapFreeTool(Tool):
                                           color=node['color'], linewidth=line_width)
             
             # Save base image (lines only)
-            plt.tight_layout(pad=0)
             ax.set_position([0, 0, 1, 1]) # Occupy full figure
             
             temp_base_file = os.path.join(temp_dir, "base_center_mindmap.png")
-            plt.savefig(temp_base_file, dpi=dpi, facecolor=theme['background'], edgecolor='none', format='png')
-            plt.close()
+            fig.savefig(temp_base_file, dpi=dpi, facecolor=theme['background'], edgecolor='none', format='png')
             
             # Open with PIL to draw text
             base_img = Image.open(temp_base_file)
@@ -668,21 +636,9 @@ class MindMapFreeTool(Tool):
 
     def _estimate_text_width(self, text: str, depth_level: int) -> float:
         """
-        Estimate text width in coordinate units for horizontal layout
+        Estimate node width in coordinate units (wrap-aware).
         """
-        width_score = 0
-        for char in text:
-            if ord(char) > 127:
-                width_score += 1.0
-            else:
-                width_score += 0.6
-        
-        scale = max(1.0 - (depth_level - 1) * 0.1, 0.6)
-        estimated_width = width_score * scale * 0.4 
-        estimated_width += 0.8
-        
-        return estimated_width
-
+        return estimate_width_units(text, depth_level)
     def _calculate_subtree_layout_data(self, node: dict, depth_level: int = 1) -> float:
         """
         Pass 1: Calculate vertical height AND estimate horizontal width for each node.
@@ -691,7 +647,7 @@ class MindMapFreeTool(Tool):
         content = node.get('content', 'Node')
         
         node['_width'] = self._estimate_text_width(content, depth_level)
-        base_node_height = 1.0
+        base_node_height = node_height_units(content, depth_level)
         
         if not children:
             node['_subtree_height'] = base_node_height
@@ -867,8 +823,8 @@ class MindMapFreeTool(Tool):
             if fig_width > 200: fig_width = 200
             if fig_height > 200: fig_height = 200
             
-            plt.close('all')
-            fig, ax = plt.subplots(1, 1, figsize=(fig_width, fig_height), dpi=100)
+            render_dpi = budget_dpi(fig_width, fig_height)
+            fig, ax = new_figure(fig_width, fig_height, render_dpi)
             ax.set_xlim(min_x - margin_x, max_x + margin_x)
             ax.set_ylim(min_y - margin_y, max_y + margin_y)
             ax.axis('off')
@@ -876,12 +832,10 @@ class MindMapFreeTool(Tool):
             # 4. Draw Lines
             self._draw_horizontal_lines(ax, tree_data)
             
-            plt.tight_layout(pad=0)
             ax.set_position([0, 0, 1, 1])
             
             temp_base_file = os.path.join(temp_dir, "base_horizontal.png")
-            plt.savefig(temp_base_file, dpi=100, facecolor=theme['background'], edgecolor='none', format='png')
-            plt.close()
+            fig.savefig(temp_base_file, dpi=render_dpi, facecolor=theme['background'], edgecolor='none', format='png')
             
             # 5. Draw Text
             base_img = Image.open(temp_base_file)
@@ -942,9 +896,11 @@ class MindMapFreeTool(Tool):
                 
                 # Generate based on decision
                 if layout_mode == 'horizontal':
-                    success = self._generate_horizontal_layout(tree_data, temp_output_path, temp_dir, theme_name)
+                    _generate = self._generate_horizontal_layout
                 else:
-                    success = self._generate_center_layout(tree_data, temp_output_path, temp_dir, theme_name)
+                    _generate = self._generate_center_layout
+                with RENDER_GATE:
+                    success = run_heavy(_generate, tree_data, temp_output_path, temp_dir, theme_name)
                 
                 if success and os.path.exists(temp_output_path):
                     with open(temp_output_path, 'rb') as f:
@@ -976,7 +932,8 @@ class MindMapFreeTool(Tool):
                         }
                     }
                     
-                    yield blob_message
+                    with SEND_GATE:
+                        yield blob_message
                     yield self.create_text_message(f'Free mind map generation successful (Mode: {layout_mode})! Image File size: {size_text}')
                     yield self.create_json_message(json_data)
                     

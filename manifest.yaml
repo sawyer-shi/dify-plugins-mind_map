@@ -1,4 +1,4 @@
-version: 0.0.9
+version: 0.0.10
 type: plugin
 tags: 
   - productivity
@@ -36,7 +36,7 @@ plugins:
   tools:
     - provider/mind_map.yaml
 meta:
-  version: 0.0.9
+  version: 0.0.10
   author: sawyer-shi
   minimum_dify_version: 1.0.0
   arch:

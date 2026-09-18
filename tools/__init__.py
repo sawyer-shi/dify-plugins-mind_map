@@ -1,4 +1,4 @@
-﻿from .ai_mind_map import AIMindMapTool
+from .ai_mind_map import AIMindMapTool
 from .mind_map_center import MindMapCenterTool
 from .mind_map_horizontal import MindMapHorizontalTool
 from .mind_map_free import MindMapFreeTool
