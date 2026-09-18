@@ -21,7 +21,7 @@ from typing import Any, Dict, Generator, List
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from tools.themes import get_theme
+from tools.themes import draw_canvas_grid, get_theme
 
 
 class MindMapHorizontalTool(Tool):
@@ -518,6 +518,7 @@ class MindMapHorizontalTool(Tool):
             base_img = Image.open(temp_base_file)
             draw = ImageDraw.Draw(base_img)
             img_w, img_h = base_img.size
+            draw_canvas_grid(base_img, draw, theme)
             
             x_range = (max_x + margin_x) - (min_x - margin_x)
             y_range = (max_y + margin_y) - (min_y - margin_y)

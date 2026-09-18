@@ -17,7 +17,7 @@ from typing import Any, Dict, Generator, List, Tuple
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from tools.themes import get_theme
+from tools.themes import draw_canvas_grid, get_theme
 from .watermark_utils import add_watermark
 
 class MindMapCenterWatermarkTool(Tool):
@@ -623,6 +623,7 @@ class MindMapCenterWatermarkTool(Tool):
             
             draw = ImageDraw.Draw(base_img)
             img_w, img_h = base_img.size
+            draw_canvas_grid(base_img, draw, theme)
             
             # Coordinate transform: Data (min_x..max_x) -> Pixel (0..img_w)
             x_range = (max_x + margin) - (min_x - margin)
