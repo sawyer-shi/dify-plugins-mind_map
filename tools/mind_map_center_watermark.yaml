@@ -115,22 +115,18 @@ parameters:
       en_US: Theme
       zh_Hans: 主题
     human_description:
-      en_US: Color theme of the mind map (classic white, dark, or aurora)
-      zh_Hans: 脑图配色主题（经典白、暗夜、极光）
+      en_US: Color theme of the mind map (Classic White or Dark Night)
+      zh_Hans: 脑图配色主题（经典白、暗夜黑）
     form: form
     options:
       - value: classic
         label:
-          en_US: Classic
+          en_US: Classic White
           zh_Hans: 经典白
       - value: dark
         label:
-          en_US: Dark
-          zh_Hans: 暗夜
-      - value: aurora
-        label:
-          en_US: Aurora
-          zh_Hans: 极光
+          en_US: Dark Night
+          zh_Hans: 暗夜黑
 extra:
   python:
     source: tools/mind_map_center_watermark.py

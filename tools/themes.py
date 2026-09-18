@@ -17,15 +17,6 @@ THEMES = {
             "#80DEEA", "#B388FF", "#84FFFF", "#FFCC80", "#FFAB91", "#8C9EFF",
         ],
     },
-    "aurora": {
-        "background": "#171A21",
-        "node_fill": "#232734",
-        "root_color": "#7BF0C8",
-        "branch_colors": [
-            "#6EE3F5", "#C39BF7", "#F2A9DD", "#9CCC65", "#FFD54F", "#FF8A65",
-            "#4DD0E1", "#B39DDB", "#AED581", "#FFD180", "#F06292", "#81D4FA",
-        ],
-    },
 }
 
 
