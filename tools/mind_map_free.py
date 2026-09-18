@@ -919,7 +919,7 @@ class MindMapFreeTool(Tool):
             markdown_content = tool_parameters.get('markdown_content', '').strip()
             filename = tool_parameters.get('filename', '').strip()
             download_md = tool_parameters.get('download_md', False)
-            theme_name = tool_parameters.get('theme', 'classic')
+            theme_name = tool_parameters.get('theme', 'industrial')
             
             if not markdown_content:
                 yield self.create_text_message('Free mind map generation failed: No Markdown content provided.')

@@ -855,7 +855,7 @@ class MindMapFreeWatermarkTool(Tool):
             watermark_text = tool_parameters.get('watermark_text', '')
             opacity = tool_parameters.get('opacity', 40)
             watermark_layout = tool_parameters.get('watermark_layout', 'tile')
-            theme_name = tool_parameters.get('theme', 'classic')
+            theme_name = tool_parameters.get('theme', 'industrial')
 
             if not markdown_content:
                 yield self.create_text_message('Free mind map generation failed: No Markdown content provided.')

@@ -146,7 +146,7 @@ User text:
             layout_mode = self._normalize_layout_mode(tool_parameters.get("layout_mode"))
             filename = str(tool_parameters.get("filename") or "").strip()
             download_md = self._to_bool(tool_parameters.get("download_md", False))
-            theme_name = str(tool_parameters.get("theme") or "classic")
+            theme_name = str(tool_parameters.get("theme") or "industrial")
 
             if not llm_model:
                 yield self.create_text_message("AI mind map generation failed: Please select an LLM model.")

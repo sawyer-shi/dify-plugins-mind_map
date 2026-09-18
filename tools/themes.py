@@ -43,8 +43,8 @@ THEMES = {
 
 
 def get_theme(name):
-    key = str(name or "classic").strip().lower()
-    return THEMES.get(key, THEMES["classic"])
+    key = str(name or "industrial").strip().lower()
+    return THEMES.get(key, THEMES["industrial"])
 
 
 def draw_canvas_grid(img, draw, theme):

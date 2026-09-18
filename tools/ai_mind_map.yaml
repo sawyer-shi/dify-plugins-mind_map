@@ -92,13 +92,13 @@ parameters:
   - name: theme
     type: select
     required: false
-    default: classic
+    default: industrial
     label:
       en_US: Theme
       zh_Hans: 主题
     human_description:
-      en_US: Color theme of the mind map (Classic White, Dark Night, Sepia, or Industrial Gray)
-      zh_Hans: 脑图配色主题（经典白、暗夜黑、护眼米黄、工业灰）
+      en_US: Color theme of the mind map (Classic White, Dark Night, Eye-care Yellow, or Industrial Gray)
+      zh_Hans: 脑图配色主题（经典白、暗夜黑、护眼黄、工业灰）
     form: form
     options:
       - value: classic
@@ -111,8 +111,8 @@ parameters:
           zh_Hans: 暗夜黑
       - value: sepia
         label:
-          en_US: Sepia
-          zh_Hans: 护眼米黄
+          en_US: Eye-care Yellow
+          zh_Hans: 护眼黄
       - value: industrial
         label:
           en_US: Industrial Gray
