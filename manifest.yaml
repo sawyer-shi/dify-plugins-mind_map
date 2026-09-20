@@ -9,7 +9,7 @@ repo: https://github.com/sawyer-shi/dify-plugins-mind_map
 contact: sawyer36@foxmail.com
 label:
   en_US: Mind Map Generator
-  zh_Hans: 脑图生成器
+  zh_Hans: 脑图(思维导图)
 description:
   en_US: "Local Private Mind Map Generator: Generate beautiful mind maps from Markdown or AI-summarized text with center, horizontal and free layouts, supporting watermarks."
   zh_Hans: "本地私有脑图生成器：将Markdown文本或AI总结后的文本转换为精美脑图(思维导图)，支持中心结构、左右结构、自由结构布局，支持添加水印"
