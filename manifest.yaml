@@ -6,6 +6,7 @@ tags:
 author: sawyer-shi
 name: mind_map
 repo: https://github.com/sawyer-shi/dify-plugins-mind_map
+contact: sawyer36@foxmail.com
 label:
   en_US: Mind Map Generator
   zh_Hans: 脑图生成器

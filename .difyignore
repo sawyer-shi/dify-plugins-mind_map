@@ -180,5 +180,9 @@ Thumbs.db
 
 # Dify plugin packages
 #  To prevent packaging repetitively
-*.difypkg
+ *.difypkg
+
+# Dev-only files not needed at runtime
+.env.example
+GUIDE.md
 
